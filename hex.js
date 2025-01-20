@@ -215,11 +215,13 @@ function draw() {
     ctx.fillText("Moves: " + moves, 1080, 70);
 }
 let mouse = new Point(0, 0);
-addEventListener("mousemove", e => {
+addEventListener("pointermove", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 });
-addEventListener("click", () => {
+addEventListener("click", e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
     player.onClick();
 });
 let canvas = document.querySelector("canvas");
