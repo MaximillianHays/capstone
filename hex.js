@@ -219,7 +219,7 @@ canvas.addEventListener("pointermove", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 });
-canvas.addEventListener("click", e => {
+canvas.addEventListener("pointerdown", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     player.onClick();
