@@ -215,11 +215,11 @@ function draw() {
     ctx.fillText("Moves: " + moves, 1080, 70);
 }
 let mouse = new Point(0, 0);
-addEventListener("pointermove", e => {
+canvas.addEventListener("pointermove", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
 });
-addEventListener("click", e => {
+canvas.addEventListener("click", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     player.onClick();
