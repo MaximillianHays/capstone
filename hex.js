@@ -215,6 +215,9 @@ function draw() {
     ctx.fillText("Moves: " + moves, 1080, 70);
 }
 let mouse = new Point(0, 0);
+let canvas = document.querySelector("canvas");
+let ctx = canvas.getContext("2d");
+scaleCanvas();
 canvas.addEventListener("pointermove", e => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
@@ -224,9 +227,6 @@ canvas.addEventListener("pointerdown", e => {
     mouse.y = e.clientY;
     player.onClick();
 });
-let canvas = document.querySelector("canvas");
-let ctx = canvas.getContext("2d");
-scaleCanvas();
 addEventListener("resize", scaleCanvas);
 let moves = 0;
 let grid = new Grid(10, 10, innerHeight / 20);
