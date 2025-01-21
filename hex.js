@@ -87,6 +87,7 @@ class Sand extends Tile {
 }
 class Flag extends Tile {
     color = "gold";
+    shift = true;
     win = true;
 }
 class Grid {
@@ -199,6 +200,34 @@ class Player {
         }
     }
 }
+function loadLevel(level) {
+    grid = new Grid(10, 10, innerHeight / 20);
+    if (level == 0) {
+        player = new Player(grid, 0, 9);
+        grid.setTile(Wall, new Point(3, 4));
+        grid.setTile(Flag, new Point(4, 9));
+    } else if (level == 1) {
+        player = new Player(grid, 0, 9);
+        grid.setTile(Wall, new Point(3, 4));
+        grid.setTile(Wall, new Point(7, 3));
+        grid.setTile(Wall, new Point(8, 0));
+        grid.setTile(Flag, new Point(9, 1));
+    } else if (level == 2) {
+        player = new Player(grid, 0, 9);
+        grid.setTile(Flag, new Point(1, 9));
+    } else if (level == 3) {
+        player = new Player(grid, 0, 9);
+        grid.setTile(Wall, new Point(1, 0));
+        grid.setTile(Wall, new Point(1, 1));
+        grid.setTile(Wall, new Point(2, 3));
+        grid.setTile(Wall, new Point(4, 2));
+        grid.setTile(Wall, new Point(0, 3));
+        grid.setTile(Wall, new Point(4, 3));
+        grid.setTile(Wall, new Point(4, 9));
+        grid.setTile(Wall, new Point(0, 7));
+        grid.setTile(Flag, new Point(0, 0));
+    }
+}
 function scaleCanvas() {
     canvas.width = innerWidth * devicePixelRatio;
     canvas.height = innerHeight * devicePixelRatio;
@@ -228,12 +257,14 @@ canvas.addEventListener("pointerdown", e => {
     player.onClick();
 });
 addEventListener("resize", scaleCanvas);
+addEventListener("keydown", e => {
+    if (e.key == "Enter" && player.tile.win) {
+        loadLevel(++level);
+    }
+});
+let level = 0;
 let moves = 0;
-let grid = new Grid(10, 10, innerHeight / 20);
-let player = new Player(grid, 0, 9);
-grid.setTile(Wall, new Point(3, 4));
-grid.setTile(Wall, new Point(7, 3));
-grid.setTile(Wall, new Point(8, 0));
-grid.setTile(Sand, new Point(8, 8));
-grid.setTile(Flag, new Point(9, 1));
+let grid;
+let player;
+loadLevel(0);
 draw();
