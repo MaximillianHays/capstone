@@ -11,7 +11,7 @@ function draw() {
 	ctx.fillText("3: Sand", 1080, 180);
 	ctx.fillText("4: Goal", 1080, 230);
 	ctx.fillText("p: Set Player Position", 1080, 280);
-	ctx.fillText("e: Export to Console", 1080, 330);
+	ctx.fillText("e: Export to Clipboard", 1080, 330);
 }
 canvas.addEventListener("pointermove", e => {
 	updateMouse(e);
@@ -27,8 +27,7 @@ addEventListener("keydown", e => {
 	if (TILES[e.key]) {
 		tile = TILES[e.key];
 	} else if (e.key == "p") {
-		player.loc.x = prompt("Set player X") ?? 0;
-		player.loc.y = prompt("Set player Y") ?? 9;
+		player.loc = grid.hovered ?? player.loc;
 	} else if (e.key == "e") {
 		let str = "\"" + player.loc.x + " " + player.loc.y;
 		for (const row of grid.grid) {
@@ -36,7 +35,7 @@ addEventListener("keydown", e => {
 				str += " " + TILES.indexOf(hex.constructor);
 			}
 		}
-		console.log(str + "\",");
+		navigator.clipboard.writeText(str + "\",");
 	}
 });
 let mouseDown = false;
