@@ -310,6 +310,20 @@ class Player {
 		}
 	}
 }
+function loadLevel(id) {
+	moves = 0;
+	grid = new Grid(10, 10, innerHeight / 20);
+	let str = LEVELS[id];
+	player = new Player(grid, +str[0], +str[2]);
+	let ptr = 4;
+	for (let i = 0; i < 100; i++) {
+		let tile = TILES[str[ptr]];
+		let angle;
+		if (tile == Mirror) angle = +str[++ptr];
+		ptr += 2;
+		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
+	}
+}
 function scaleCanvas() {
 	canvas.width = innerWidth * devicePixelRatio;
 	canvas.height = innerHeight * devicePixelRatio;
@@ -330,5 +344,7 @@ let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
 let lastTime = performance.now();
 let delta;
+let grid = new Grid(10, 10, innerHeight / 20);
+let player;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);

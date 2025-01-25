@@ -14,6 +14,7 @@ function draw() {
 	ctx.fillText("5: Mirror (r to rotate)", 1080, 280);
 	ctx.fillText("p: Set Player Position", 1080, 330);
 	ctx.fillText("e: Export to Clipboard", 1080, 380);
+	ctx.fillText("l: Load level", 1080, 430);
 }
 function setTile() {
 	if (grid.hovered) grid.setTile(tile, grid.hovered, angle);
@@ -45,11 +46,13 @@ addEventListener("keydown", e => {
 			}
 		}
 		navigator.clipboard.writeText(str + "\",");
+	} else if (e.key == "l") {
+		let id = prompt("Which level index would you like to load?");
+		if (id) loadLevel(+id);
 	}
 });
 let mouseDown = false;
 let angle = 0;
-let grid = new Grid(10, 10, innerHeight / 20);
-let player = new Player(grid, 0, 9);
+player = new Player(grid, 0, 9);
 let tile = Wall;
 draw();

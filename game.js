@@ -1,17 +1,3 @@
-function loadLevel(id) {
-	moves = 0;
-	grid = new Grid(10, 10, innerHeight / 20);
-	let str = LEVELS[id];
-	player = new Player(grid, +str[0], +str[2]);
-	let ptr = 4;
-	for (let i = 0; i < 100; i++) {
-		let tile = TILES[str[ptr]];
-		let angle;
-		if (tile == Mirror) angle = +str[++ptr];
-		ptr += 2;
-		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
-	}
-}
 function draw() {
 	requestAnimationFrame(draw);
 	updateDelta();
@@ -37,7 +23,5 @@ addEventListener("keydown", e => {
 });
 let level = 0;
 let moves = 0;
-let grid;
-let player;
 loadLevel(0);
 draw();
