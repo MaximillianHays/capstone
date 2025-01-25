@@ -1,12 +1,15 @@
-function loadLevel() {
+function loadLevel(id) {
 	moves = 0;
 	grid = new Grid(10, 10, innerHeight / 20);
-	let str = LEVELS[level];
+	let str = LEVELS[id];
 	player = new Player(grid, +str[0], +str[2]);
-	str = str.substring(4);
-	for (let i = 0; i < str.length; i += 2) {
-		let t = i / 2;
-		grid.setTile(TILES[str[i]], new Point(t % 10, Math.floor(t / 10)));
+	let ptr = 4;
+	for (let i = 0; i < 100; i++) {
+		let tile = TILES[str[ptr]];
+		let angle;
+		if (tile == Mirror) angle = +str[++ptr];
+		ptr += 2;
+		grid.setTile(tile, new Point(i % 10, Math.floor(i / 10)), angle);
 	}
 }
 function draw() {
@@ -35,5 +38,5 @@ let level = 0;
 let moves = 0;
 let grid;
 let player;
-loadLevel();
+loadLevel(0);
 draw();

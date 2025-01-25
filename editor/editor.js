@@ -10,22 +10,28 @@ function draw() {
 	ctx.fillText("2: Wall", 1080, 130);
 	ctx.fillText("3: Sand", 1080, 180);
 	ctx.fillText("4: Goal", 1080, 230);
-	ctx.fillText("p: Set Player Position", 1080, 280);
-	ctx.fillText("e: Export to Clipboard", 1080, 330);
+	ctx.fillText("5: Mirror (r to rotate)", 1080, 280);
+	ctx.fillText("p: Set Player Position", 1080, 330);
+	ctx.fillText("e: Export to Clipboard", 1080, 380);
+}
+function setTile() {
+	if (grid.hovered) grid.setTile(tile, grid.hovered, angle);
 }
 canvas.addEventListener("pointermove", e => {
 	updateMouse(e);
-	if (mouseDown && grid.hovered) grid.setTile(tile, grid.hovered);
+	if (mouseDown) setTile();
 });
 canvas.addEventListener("pointerdown", e => {
 	updateMouse(e);
 	mouseDown = true;
-	if (grid.hovered) grid.setTile(tile, grid.hovered);
+	setTile();
 });
 canvas.addEventListener("pointerup", () => mouseDown = false);
 addEventListener("keydown", e => {
 	if (TILES[e.key]) {
 		tile = TILES[e.key];
+	} else if (e.key == "r") {
+		angle = (angle + 1) % 6;
 	} else if (e.key == "p") {
 		player.loc = grid.hovered ?? player.loc;
 	} else if (e.key == "e") {
@@ -33,12 +39,14 @@ addEventListener("keydown", e => {
 		for (const row of grid.grid) {
 			for (const hex of row) {
 				str += " " + TILES.indexOf(hex.constructor);
+				str += hex.angle ?? "";
 			}
 		}
 		navigator.clipboard.writeText(str + "\",");
 	}
 });
 let mouseDown = false;
+let angle = 0;
 let grid = new Grid(10, 10, innerHeight / 20);
 let player = new Player(grid, 0, 9);
 let tile = Wall;
