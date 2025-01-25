@@ -1,5 +1,6 @@
 function draw() {
 	requestAnimationFrame(draw);
+	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	grid.draw();
 	player.draw();
@@ -34,6 +35,7 @@ addEventListener("keydown", e => {
 		angle = (angle + 1) % 6;
 	} else if (e.key == "p") {
 		player.loc = grid.hovered ?? player.loc;
+		player.addStop();
 	} else if (e.key == "e") {
 		let str = "\"" + player.loc.x + " " + player.loc.y;
 		for (const row of grid.grid) {

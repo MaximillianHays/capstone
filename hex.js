@@ -1,13 +1,34 @@
-class Point {
+class Vec {
 	constructor(x, y) {
 		this.x = x;
 		this.y = y;
 	}
+	get length() {
+		return Math.hypot(this.x, this.y);
+	}
+	withLength(length) {
+		return this.scale(length / this.length);
+	}
+	add(other) {
+		return new Vec(this.x + other.x, this.y + other.y);
+	}
+	sub(other) {
+		return new Vec(this.x - other.x, this.y - other.y);
+	}
+	scale(factor) {
+		return new Vec(this.x * factor, this.y * factor);
+	}
+	dist(other) {
+		return this.sub(other).length;
+	}
 	equals(other) {
 		return this.x == other.x && this.y == other.y;
 	}
+	copy() {
+		return new Vec(this.x, this.y);
+	}
 	invert() {
-		return new Point(-this.x, -this.y);
+		return new Vec(-this.x, -this.y);
 	}
 }
 class Hex {
@@ -21,7 +42,7 @@ class Hex {
 		let points = [];
 		for (let i = 0; i < 6; i++) {
 			let angle = Math.PI * (i / 3 + 1 / 6);
-			points.push(new Point(
+			points.push(new Vec(
 				this.center.x + this.radius * Math.cos(angle),
 				this.center.y + this.radius * Math.sin(angle)
 			));
@@ -67,7 +88,7 @@ class Tile {
 	get adjacency() {
 		let pairs = [];
 		for (const [x, y] of [[-1, -1], [-1, 0], [-1, 1], [1, -1], [1, 0], [1, 1]]) {
-			let dir = new Point(x, y);
+			let dir = new Vec(x, y);
 			let ai = Grid.adjacentIndex(this.loc, dir);
 			let tile = this.grid.getTile(ai);
 			if (tile && !tile.isStop(dir)) {
@@ -101,7 +122,7 @@ class Wall extends Tile {
 class Sand extends Tile {
 	color = "#ff7";
 	newDirection(dir) {
-		return new Point(0, 0);
+		return new Vec(0, 0);
 	}
 }
 class Goal extends Tile {
@@ -109,7 +130,7 @@ class Goal extends Tile {
 	win = true;
 }
 class Mirror extends Tile {
-	static DIRECTIONS = [new Point(1, -1), new Point(1, 0), new Point(1, 1), new Point(-1, 1), new Point(-1, 0), new Point(-1, -1)];
+	static DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
 	color = "black";
 	constructor(grid, hex, loc, angle) {
 		super(grid, hex, loc);
@@ -160,7 +181,7 @@ class Grid {
 		for (let y = 0; y < this.height; y++) {
 			this.grid.push([]);
 			for (let x = 0; x < this.width; x++) {
-				this.setTile(Ice, new Point(x, y));
+				this.setTile(Ice, new Vec(x, y));
 			}
 		}
 	}
@@ -170,20 +191,20 @@ class Grid {
 	static adjacentIndex(currentIndex, dir) {
 		let x = currentIndex.x + (dir.y ? Math.floor(dir.x / 2 + Grid.rowOffset(currentIndex.y)) : dir.x);
 		let y = currentIndex.y + dir.y;
-		return new Point(x, y);
+		return new Vec(x, y);
 	}
 	get hovered() {
 		for (let y = 0; y < this.height; y++) {
 			for (let x = 0; x < this.width; x++) {
 				let hex = this.grid[y][x].hex;
-				if (hex.contains(mouse)) return new Point(x, y);
+				if (hex.contains(mouse)) return new Vec(x, y);
 			}
 		}
 		return null;
 	}
 	setTile(tile, loc, ...args) {
 		let diameter = this.edgeRadius * 2;
-		let center = new Point(
+		let center = new Vec(
 			(loc.x + Grid.rowOffset(loc.y) + 1) * diameter,
 			(loc.y + 1) * diameter * Hex.HEIGHT_FACTOR
 		);
@@ -204,57 +225,87 @@ class Grid {
 class Player {
 	constructor(grid, x, y) {
 		this.grid = grid;
-		this.loc = new Point(x, y);
-		this.moving = false;
+		this.loc = new Vec(x, y);
+		this.stops = [];
 		this.drawLoc = this.tile.hex.center;
+		this.radius = this.grid.edgeRadius / 2;
 	}
 	get tile() {
 		return this.grid.getTile(this.loc);
 	}
 	onClick() {
-		if (this.moving) return;
+		if (this.stops.length) return;
 		for (const [tile, dir] of this.tile.adjacency) {
 			if (tile.hex.contains(mouse)) {
 				this.move(dir);
-				this.moving = true;
+				this.adjust();
 				break;
 			}
 		}
 	}
+	addStop() {
+		this.stops.push(this.tile.hex.center.copy());
+	}
 	move(dir, moved) {
-		if (dir.equals(new Point(0, 0))) return;
+		if (dir.equals(new Vec(0, 0))) return;
 		let nextTile = this.grid.getTile(Grid.adjacentIndex(this.loc, dir));
-		if (!nextTile || nextTile.isStop(dir)) return;
+		if (!nextTile || nextTile.isStop(dir)) {
+			this.addStop();
+			return;
+		}
 		if (!moved) moves++;
 		this.loc = nextTile.loc;
-		this.move(nextTile.newDirection(dir), true);
+		let newDir = nextTile.newDirection(dir);
+		if (!dir.equals(newDir)) this.addStop();
+		this.move(newDir, true);
 	}
 	approach() {
-		let dx = this.tile.hex.center.x - this.drawLoc.x;
-		let dy = this.tile.hex.center.y - this.drawLoc.y;
-		let hypot = Math.hypot(dx, dy);
-		let speed = 3 + hypot * 0.05;
-		if (hypot > speed + 0.0000001) {
-			let factor = speed / hypot;
-			dx *= factor;
-			dy *= factor;
-		} else {
-			this.moving = false;
+		if (!this.stops.length) return;
+		let toNextStop = this.stops[0].sub(this.drawLoc);
+		let length = toNextStop.length;
+		for (let i = 1; i < this.stops.length; i++) {
+			length += this.stops[i].dist(this.stops[i - 1]);
 		}
-		this.drawLoc = new Point(this.drawLoc.x + dx, this.drawLoc.y + dy);
+		let speed = (0.3 + length * 0.003) * delta;
+		if (toNextStop.length > speed + 0.0000001) {
+			toNextStop = toNextStop.withLength(speed);
+		} else {
+			this.stops.shift();
+		}
+		this.drawLoc = this.drawLoc.add(toNextStop);
+	}
+	adjust() {
+		let stops = [this.drawLoc, ...this.stops];
+		let newStops = [];
+		for (let i = 2; i < stops.length; i++) {
+			let a = stops[i - 2];
+			let b = stops[i - 1];
+			let c = stops[i];
+			let toA = a.sub(b).withLength(1);
+			let toC = c.sub(b).withLength(1);
+			newStops.push(toA.add(toC).withLength(this.radius).add(b));
+		}
+		newStops.push(this.stops.at(-1));
+		this.stops = newStops;
 	}
 	draw() {
+		// ctx.beginPath();
+		// ctx.moveTo(this.drawLoc.x, this.drawLoc.y);
+		// for (let x of this.stops) {
+		// 	ctx.lineTo(x.x, x.y);
+		// }
+		// ctx.stroke();
 		this.approach();
 		ctx.beginPath();
-		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.grid.edgeRadius / 2, 0, Math.PI * 2);
+		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.radius, 0, Math.PI * 2);
 		ctx.fillStyle = "red";
 		ctx.fill();
-		if (this.moving) return;
+		if (this.stops.length) return;
 		for (const [tile, dir] of this.tile.adjacency) {
 			let center = tile.hex.center;
 			ctx.fillStyle = tile.hex.contains(mouse) ? "green" : "blue";
 			ctx.beginPath();
-			ctx.arc(center.x, center.y, this.grid.edgeRadius / 2, 0, Math.PI * 2);
+			ctx.arc(center.x, center.y, this.radius, 0, Math.PI * 2);
 			ctx.fill();
 		}
 	}
@@ -265,12 +316,19 @@ function scaleCanvas() {
 	ctx.scale(devicePixelRatio, devicePixelRatio);
 	ctx.textBaseline = "top";
 }
+function updateDelta() {
+	let time = performance.now();
+	delta = time - lastTime;
+	lastTime = time;
+}
 function updateMouse(e) {
 	mouse.x = e.x;
 	mouse.y = e.y;
 }
-let mouse = new Point(0, 0);
+let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
+let lastTime = performance.now();
+let delta;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);

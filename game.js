@@ -9,11 +9,12 @@ function loadLevel(id) {
 		let angle;
 		if (tile == Mirror) angle = +str[++ptr];
 		ptr += 2;
-		grid.setTile(tile, new Point(i % 10, Math.floor(i / 10)), angle);
+		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
 	}
 }
 function draw() {
 	requestAnimationFrame(draw);
+	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	grid.draw();
 	player.draw();
