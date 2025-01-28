@@ -13,8 +13,9 @@ function draw() {
 	ctx.fillText("4: Goal", 1080, 230);
 	ctx.fillText("5: Mirror (r to rotate)", 1080, 280);
 	ctx.fillText("p: Set Player Position", 1080, 330);
-	ctx.fillText("e: Export to Clipboard", 1080, 380);
-	ctx.fillText("l: Load level", 1080, 430);
+	ctx.fillText("m: Set Target Moves", 1080, 380);
+	ctx.fillText("e: Export to Clipboard", 1080, 430);
+	ctx.fillText("l: Load level", 1080, 480);
 }
 function setTile() {
 	if (grid.hovered) grid.setTile(tile, grid.hovered, angle);
@@ -37,6 +38,8 @@ addEventListener("keydown", e => {
 	} else if (e.key == "p") {
 		player.loc = grid.hovered ?? player.loc;
 		player.addStop();
+	} else if (e.key == "m") {
+		target = prompt("What is the target move count?");
 	} else if (e.key == "e") {
 		let str = "\"" + player.loc.x + " " + player.loc.y;
 		for (const row of grid.grid) {
@@ -45,7 +48,7 @@ addEventListener("keydown", e => {
 				str += hex.angle ?? "";
 			}
 		}
-		navigator.clipboard.writeText(str + "\",");
+		navigator.clipboard.writeText(str + " " + target + "\",");
 	} else if (e.key == "l") {
 		let id = prompt("Which level index would you like to load?");
 		if (id) loadLevel(+id);
@@ -53,6 +56,7 @@ addEventListener("keydown", e => {
 });
 let mouseDown = false;
 let angle = 0;
+let target = 1;
 player = new Player(grid, 0, 9);
 let tile = Wall;
 draw();

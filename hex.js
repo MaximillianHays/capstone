@@ -171,7 +171,47 @@ class Mirror extends Tile {
 		this.hex.draw("stroke");
 	}
 }
-const TILES = [, Ice, Wall, Sand, Goal, Mirror];
+class BigMirror extends Tile {
+	static DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
+	color = "black";
+	constructor(grid, hex, loc, angle) {
+		super(grid, hex, loc);
+		this.angle = angle;
+	}
+	newDirection(dir) {
+		dir = dir.invert();
+		let index = Mirror.DIRECTIONS.findIndex(x => x.equals(dir));
+		let nextAngle = (this.angle + 1) % 6;
+		if (index == nextAngle) return Mirror.DIRECTIONS[this.angle];
+		if (index == this.angle) return Mirror.DIRECTIONS[nextAngle];
+		return null;
+	}
+	draw() {
+		ctx.fillStyle = "skyblue";
+		this.hex.draw("fill");
+		let points = this.hex.points;
+		let angle = this.angle;
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.moveTo(points[angle].x, points[angle].y);
+		for (let i = 0; i < 4; i++) {
+			angle = (angle + 1) % 6;
+			ctx.lineTo(points[angle].x, points[angle].y);
+		}
+		ctx.closePath();
+		ctx.fill();
+		ctx.beginPath();
+		ctx.moveTo(points[this.angle].x, points[this.angle].y);
+		ctx.lineTo(points[angle].x, points[angle].y);
+		ctx.strokeStyle = "red";
+		ctx.lineWidth = 2;
+		ctx.stroke();
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = "white";
+		this.hex.draw("stroke");
+	}
+}
+const TILES = [, Ice, Wall, Sand, Goal, Mirror, BigMirror];
 class Grid {
 	constructor(width, height, edgeRadius) {
 		this.width = width;
@@ -319,7 +359,7 @@ function loadLevel(id) {
 	for (let i = 0; i < 100; i++) {
 		let tile = TILES[str[ptr]];
 		let angle;
-		if (tile == Mirror) angle = +str[++ptr];
+		if (tile == Mirror || tile == BigMirror) angle = +str[++ptr];
 		ptr += 2;
 		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
 	}
