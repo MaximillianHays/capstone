@@ -211,7 +211,7 @@ class BigMirror extends Tile {
 		this.hex.draw("stroke");
 	}
 }
-const TILES = [, Ice, Wall, Sand, Goal, Mirror, BigMirror];
+const TILES = [, Ice, Wall, Sand, Goal, Mirror];
 class Grid {
 	constructor(width, height, edgeRadius) {
 		this.width = width;
@@ -306,7 +306,7 @@ class Player {
 		for (let i = 1; i < this.stops.length; i++) {
 			length += this.stops[i].dist(this.stops[i - 1]);
 		}
-		let speed = (0.3 + length * 0.003) * delta;
+		let speed = (0.3 + length * 0.005) * delta;
 		if (toNextStop.length > speed + 0.0000001) {
 			toNextStop = toNextStop.withLength(speed);
 		} else {
@@ -363,12 +363,22 @@ function loadLevel(id) {
 		ptr += 2;
 		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
 	}
+	target = +str.substring(ptr);
 }
 function scaleCanvas() {
 	canvas.width = innerWidth * devicePixelRatio;
 	canvas.height = innerHeight * devicePixelRatio;
 	ctx.scale(devicePixelRatio, devicePixelRatio);
 	ctx.textBaseline = "top";
+}
+function resetText() {
+	textY = 0;
+	ctx.fillStyle = "black";
+	ctx.font = "40px monospace";
+}
+function drawText(str) {
+	textY += 50;
+	ctx.fillText(str, 1080, textY);
 }
 function updateDelta() {
 	let time = performance.now();
@@ -382,9 +392,11 @@ function updateMouse(e) {
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
+let textY = 0;
 let lastTime = performance.now();
 let delta;
 let grid = new Grid(10, 10, innerHeight / 20);
 let player;
+let target = 1;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);

@@ -4,18 +4,19 @@ function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	grid.draw();
 	player.draw();
-	ctx.fillStyle = "black";
-	ctx.font = "40px monospace";
-	ctx.fillText("Current Tile: " + tile.name, 1080, 30);
-	ctx.fillText("1: Ice", 1080, 80);
-	ctx.fillText("2: Wall", 1080, 130);
-	ctx.fillText("3: Sand", 1080, 180);
-	ctx.fillText("4: Goal", 1080, 230);
-	ctx.fillText("5: Mirror (r to rotate)", 1080, 280);
-	ctx.fillText("p: Set Player Position", 1080, 330);
-	ctx.fillText("m: Set Target Moves", 1080, 380);
-	ctx.fillText("e: Export to Clipboard", 1080, 430);
-	ctx.fillText("l: Load level", 1080, 480);
+	resetText();
+	drawText("Current Tile: " + tile.name);
+	drawText("Target: " + target);
+	drawText("1: Ice");
+	drawText("2: Wall");
+	drawText("3: Sand");
+	drawText("4: Goal");
+	drawText("5: Mirror");
+	drawText("r: Rotate Tile");
+	drawText("p: Set Player Position");
+	drawText("t: Set Target Moves");
+	drawText("e: Export to Clipboard");
+	drawText("l: Load level");
 }
 function setTile() {
 	if (grid.hovered) grid.setTile(tile, grid.hovered, angle);
@@ -38,8 +39,8 @@ addEventListener("keydown", e => {
 	} else if (e.key == "p") {
 		player.loc = grid.hovered ?? player.loc;
 		player.addStop();
-	} else if (e.key == "m") {
-		target = prompt("What is the target move count?");
+	} else if (e.key == "t") {
+		target = prompt("What is the target move count?") ?? target;
 	} else if (e.key == "e") {
 		let str = "\"" + player.loc.x + " " + player.loc.y;
 		for (const row of grid.grid) {
@@ -56,7 +57,6 @@ addEventListener("keydown", e => {
 });
 let mouseDown = false;
 let angle = 0;
-let target = 1;
 player = new Player(grid, 0, 9);
 let tile = Wall;
 draw();

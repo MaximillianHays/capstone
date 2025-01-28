@@ -4,20 +4,33 @@ function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	grid.draw();
 	player.draw();
+	let stars = "★☆☆";
+	if (moves <= target) {
+		stars = "★★★";
+	} else if (moves <= target + 3) {
+		stars = "★★☆";
+	}
+	let levelStr = "Level " + (level + 1) + " ";
+	resetText();
+	drawText(levelStr);
+	ctx.fillStyle = "gold";
+	ctx.fillText(stars, 1080 + ctx.measureText(levelStr).width, textY);
 	ctx.fillStyle = "black";
-	ctx.font = "40px monospace";
-	ctx.fillText("Level " + (level + 1), 1080, 50);
-	ctx.fillText("Moves: " + moves, 1080, 100);
-	ctx.fillText("Press R to reset the level", 1080, 200);
-	ctx.fillText("Press Enter to continue", 1080, 300);
-	ctx.fillText("once you reach the goal", 1080, 350);
+	drawText("Moves: " + moves);
+	drawText("Target: " + target);
+	drawText("");
+	drawText("Press R to reset the level");
+	drawText("");
+	drawText("Press Enter to continue");
+	drawText("once you reach the goal");
+	drawText("");
 	if (level == 0) {
-		ctx.fillText("The red circle is you", 1080, 450);
-		ctx.fillText("The gold hex is the goal", 1080, 500);
+		drawText("The red circle is you");
+		drawText("The gold hex is the goal");
 	} else if (level == 6) {
-		ctx.fillText("You bounce off of mirrors", 1080, 450);
+		drawText("You bounce off of mirrors");
 	} else if (level == 13) {
-		ctx.fillText("You don't slide past sand", 1080, 450);
+		drawText("You don't slide past sand");
 	}
 }
 canvas.addEventListener("pointermove", updateMouse);
