@@ -11,6 +11,14 @@ function draw() {
 	ctx.fillText("Press R to reset the level", 1080, 200);
 	ctx.fillText("Press Enter to continue", 1080, 300);
 	ctx.fillText("once you reach the goal", 1080, 350);
+	if (level == 0) {
+		ctx.fillText("The red circle is you", 1080, 450);
+		ctx.fillText("The gold hex is the goal", 1080, 500);
+	} else if (level == 6) {
+		ctx.fillText("You bounce off of mirrors", 1080, 450);
+	} else if (level == 13) {
+		ctx.fillText("You don't slide past sand", 1080, 450);
+	}
 }
 canvas.addEventListener("pointermove", updateMouse);
 canvas.addEventListener("pointerdown", e => {
