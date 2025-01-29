@@ -88,8 +88,7 @@ class Tile {
 	}
 	get adjacency() {
 		let pairs = [];
-		for (const [x, y] of [[-1, -1], [-1, 0], [-1, 1], [1, -1], [1, 0], [1, 1]]) {
-			let dir = new Vec(x, y);
+		for (const dir of DIRECTIONS) {
 			let ai = Grid.adjacentIndex(this.loc, dir);
 			let tile = this.grid.getTile(ai);
 			if (tile && !tile.isStop(dir)) {
