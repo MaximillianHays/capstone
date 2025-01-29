@@ -79,6 +79,7 @@ class Hex {
 		ctx[fill]();
 	}
 }
+const DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
 class Tile {
 	constructor(grid, hex, loc) {
 		this.grid = grid;
@@ -110,6 +111,12 @@ class Tile {
 		this.hex.draw("stroke");
 	}
 }
+class AngledTile extends Tile {
+	constructor(grid, hex, loc, angle) {
+		super(grid, hex, loc);
+		this.angle = angle;
+	}
+}
 class Ice extends Tile {
 	color = "skyblue";
 }
@@ -129,21 +136,16 @@ class Goal extends Tile {
 	color = "gold";
 	win = true;
 }
-class Mirror extends Tile {
-	static DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
+class Mirror extends AngledTile {
 	color = "black";
-	constructor(grid, hex, loc, angle) {
-		super(grid, hex, loc);
-		this.angle = angle;
-	}
 	newDirection(dir) {
 		dir = dir.invert();
-		let index = Mirror.DIRECTIONS.findIndex(x => x.equals(dir));
+		let index = DIRECTIONS.findIndex(x => x.equals(dir));
 		let nextAngle = (this.angle + 1) % 6;
 		let lastAngle = (this.angle + 5) % 6;
 		if (index == this.angle) return dir;
-		if (index == nextAngle) return Mirror.DIRECTIONS[lastAngle];
-		if (index == lastAngle) return Mirror.DIRECTIONS[nextAngle];
+		if (index == nextAngle) return DIRECTIONS[lastAngle];
+		if (index == lastAngle) return DIRECTIONS[nextAngle];
 		return null;
 	}
 	draw() {
@@ -171,19 +173,14 @@ class Mirror extends Tile {
 		this.hex.draw("stroke");
 	}
 }
-class BigMirror extends Tile {
-	static DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
+class BigMirror extends AngledTile {
 	color = "black";
-	constructor(grid, hex, loc, angle) {
-		super(grid, hex, loc);
-		this.angle = angle;
-	}
 	newDirection(dir) {
 		dir = dir.invert();
-		let index = Mirror.DIRECTIONS.findIndex(x => x.equals(dir));
+		let index = DIRECTIONS.findIndex(x => x.equals(dir));
 		let nextAngle = (this.angle + 1) % 6;
-		if (index == nextAngle) return Mirror.DIRECTIONS[this.angle];
-		if (index == this.angle) return Mirror.DIRECTIONS[nextAngle];
+		if (index == nextAngle) return DIRECTIONS[this.angle];
+		if (index == this.angle) return DIRECTIONS[nextAngle];
 		return null;
 	}
 	draw() {
@@ -211,7 +208,34 @@ class BigMirror extends Tile {
 		this.hex.draw("stroke");
 	}
 }
-const TILES = [, Ice, Wall, Sand, Goal, Mirror];
+class Redirector extends AngledTile {
+	color = "yellow";
+	newDirection(dir) {
+		return DIRECTIONS[this.angle];
+	}
+	draw() {
+		ctx.fillStyle = "skyblue";
+		this.hex.draw("fill");
+		let points = this.hex.points;
+		let angle = (this.angle + 1) % 6;
+		ctx.fillStyle = this.color;
+		ctx.beginPath();
+		ctx.moveTo(points[angle].x, points[angle].y);
+		angle = (angle + 1) % 6;
+		ctx.lineTo(points[angle].x, points[angle].y);
+		ctx.lineTo(this.hex.center.x, this.hex.center.y);
+		ctx.closePath();
+		ctx.fill();
+		ctx.strokeStyle = "white";
+		this.hex.draw("stroke");
+	}
+}
+class Rotator extends AngledTile {
+	newDirection(dir) {
+		return DIRECTIONS[(dir + this.angle) % 6];
+	}
+}
+const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator];
 class Grid {
 	constructor(width, height, edgeRadius) {
 		this.width = width;
@@ -290,6 +314,7 @@ class Player {
 		if (dir.equals(new Vec(0, 0))) return;
 		let nextTile = this.grid.getTile(Grid.adjacentIndex(this.loc, dir));
 		if (!nextTile || nextTile.isStop(dir)) {
+			// this.tile.color = "lime";
 			this.addStop();
 			return;
 		}
@@ -359,7 +384,7 @@ function loadLevel(id) {
 	for (let i = 0; i < 100; i++) {
 		let tile = TILES[str[ptr]];
 		let angle;
-		if (tile == Mirror || tile == BigMirror) angle = +str[++ptr];
+		if (tile.prototype instanceof AngledTile) angle = +str[++ptr];
 		ptr += 2;
 		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
 	}

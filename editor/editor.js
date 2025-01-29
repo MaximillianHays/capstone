@@ -7,11 +7,9 @@ function draw() {
 	resetText();
 	drawText("Current Tile: " + tile.name);
 	drawText("Target: " + target);
-	drawText("1: Ice");
-	drawText("2: Wall");
-	drawText("3: Sand");
-	drawText("4: Goal");
-	drawText("5: Mirror");
+	for (let i = 1; i < TILES.length; i++) {
+		drawText(i + ": " + TILES[i].name);
+	}
 	drawText("r: Rotate Tile");
 	drawText("p: Set Player Position");
 	drawText("t: Set Target Moves");
@@ -19,7 +17,10 @@ function draw() {
 	drawText("l: Load level");
 }
 function setTile() {
-	if (grid.hovered) grid.setTile(tile, grid.hovered, angle);
+	if (!grid.hovered) return;
+	let arg = angle;
+	if (tile == Rotator) arg = arg % 2 ? 5 : 1;
+	grid.setTile(tile, grid.hovered, arg);
 }
 canvas.addEventListener("pointermove", e => {
 	updateMouse(e);
