@@ -68,8 +68,14 @@ class Hex {
 		}
 		return true;
 	}
-	draw(fill) {
+	draw(fill, x = 1, y = 1) {
 		let points = this.points;
+		if (x != 1 || y != 1) {
+			ctx.save();
+			ctx.translate(this.center.x, this.center.y);
+			ctx.scale(x, y);
+			ctx.translate(-this.center.x, -this.center.y);
+		}
 		ctx.beginPath();
 		ctx.moveTo(points[0].x, points[0].y);
 		for (let i = 1; i < 6; i++) {
@@ -77,10 +83,11 @@ class Hex {
 		}
 		ctx.closePath();
 		ctx[fill]();
+		if (x != 1 || y != 1) ctx.restore();
 	}
-	drawImage(src) {
+	drawImage(src, x, y) {
 		ctx.save();
-		this.draw("clip");
+		this.draw("clip", x, y);
 		drawImage(src, this.center.x - this.edgeRadius, this.center.y - this.edgeRadius, this.edgeRadius * 2, this.edgeRadius * 2);
 		ctx.restore();
 	}
@@ -103,17 +110,21 @@ class Tile {
 		}
 		return pairs;
 	}
+	onEnter() {}
 	newDirection(dir) {
 		return dir;
 	}
 	isStop(dir) {
 		return this.newDirection(dir) == null;
 	}
+	outline(color = "white") {
+		ctx.strokeStyle = color;
+		this.hex.draw("stroke");
+	}
 	draw() {
 		ctx.fillStyle = this.color;
 		this.hex.draw("fill");
-		ctx.strokeStyle = "white";
-		this.hex.draw("stroke");
+		this.outline();
 	}
 }
 class AngledTile extends Tile {
@@ -174,8 +185,7 @@ class Mirror extends AngledTile {
 		ctx.lineWidth = 2;
 		ctx.stroke();
 		ctx.lineWidth = 1;
-		ctx.strokeStyle = "white";
-		this.hex.draw("stroke");
+		this.outline();
 	}
 }
 class BigMirror extends AngledTile {
@@ -209,8 +219,7 @@ class BigMirror extends AngledTile {
 		ctx.lineWidth = 2;
 		ctx.stroke();
 		ctx.lineWidth = 1;
-		ctx.strokeStyle = "white";
-		this.hex.draw("stroke");
+		this.outline();
 	}
 }
 class Redirector extends AngledTile {
@@ -231,8 +240,7 @@ class Redirector extends AngledTile {
 		ctx.lineTo(this.hex.center.x, this.hex.center.y);
 		ctx.closePath();
 		ctx.fill();
-		ctx.strokeStyle = "white";
-		this.hex.draw("stroke");
+		this.outline();
 	}
 }
 class Rotator extends AngledTile {
@@ -242,17 +250,49 @@ class Rotator extends AngledTile {
 	}
 	draw() {
 		super.draw();
-		ctx.save();
-		if (this.angle == 4) {
-			ctx.translate(this.hex.center.x, this.hex.center.y);
-			ctx.scale(-1, 1);
-			ctx.translate(-this.hex.center.x, -this.hex.center.y);
-		}
-		this.hex.drawImage("rotator.svg");
-		ctx.restore();
+		this.hex.drawImage("rotator.svg", this.angle == 2 ? 1 : -1, 1);
 	}
 }
-const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator];
+class Switch extends Tile {
+	color = "red";
+	onEnter() {
+		for (const row of this.grid.grid) {
+			for (const hex of row) {
+				if (hex instanceof ToggledWall) hex.angle = !hex.angle;
+			}
+		}
+	}
+	draw() {
+		ctx.fillStyle = "skyblue";
+		this.hex.draw("fill");
+		ctx.fillStyle = this.color;
+		this.hex.draw("fill", 0.5, 0.5);
+		this.outline();
+	}
+}
+class ToggledWall extends AngledTile {
+	color = "purple";
+	newDirection(dir) {
+		return this.angle ? null : dir;
+	}
+	draw() {
+		if (this.angle) {
+			super.draw();
+		} else {
+			ctx.fillStyle = "skyblue";
+			this.hex.draw("fill");
+			ctx.setLineDash([this.hex.radius, this.hex.radius]);
+			ctx.lineDashOffset = lastTime * 0.1;
+			ctx.lineWidth = 8;
+			ctx.strokeStyle = this.color;
+			this.hex.draw("stroke", 0.9, 0.9);
+			ctx.lineWidth = 1;
+			ctx.setLineDash([]);
+			this.outline();
+		}
+	}
+}
+const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator, Switch, ToggledWall];
 class Grid {
 	constructor(width, height, edgeRadius) {
 		this.width = width;
@@ -339,6 +379,7 @@ class Player {
 		this.loc = nextTile.loc;
 		let newDir = nextTile.newDirection(dir);
 		if (!dir.equals(newDir)) this.addStop();
+		nextTile.onEnter();
 		this.move(newDir, true);
 	}
 	approach() {

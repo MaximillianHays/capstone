@@ -20,6 +20,7 @@ function setTile() {
 	if (!grid.hovered) return;
 	let arg = angle;
 	if (tile == Rotator) arg = arg % 2 ? 4 : 2;
+	if (tile == ToggledWall) arg %= 2;
 	grid.setTile(tile, grid.hovered, arg);
 }
 canvas.addEventListener("pointermove", e => {
