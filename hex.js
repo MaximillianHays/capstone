@@ -78,6 +78,12 @@ class Hex {
 		ctx.closePath();
 		ctx[fill]();
 	}
+	drawImage(src) {
+		ctx.save();
+		this.draw("clip");
+		drawImage(src, this.center.x - this.edgeRadius, this.center.y - this.edgeRadius, this.edgeRadius * 2, this.edgeRadius * 2);
+		ctx.restore();
+	}
 }
 const DIRECTIONS = [new Vec(1, -1), new Vec(1, 0), new Vec(1, 1), new Vec(-1, 1), new Vec(-1, 0), new Vec(-1, -1)];
 class Tile {
@@ -139,7 +145,7 @@ class Mirror extends AngledTile {
 	color = "black";
 	newDirection(dir) {
 		dir = dir.invert();
-		let index = DIRECTIONS.findIndex(x => x.equals(dir));
+		let index = directionIndex(dir);
 		let nextAngle = (this.angle + 1) % 6;
 		let lastAngle = (this.angle + 5) % 6;
 		if (index == this.angle) return dir;
@@ -176,7 +182,7 @@ class BigMirror extends AngledTile {
 	color = "black";
 	newDirection(dir) {
 		dir = dir.invert();
-		let index = DIRECTIONS.findIndex(x => x.equals(dir));
+		let index = directionIndex(dir);
 		let nextAngle = (this.angle + 1) % 6;
 		if (index == nextAngle) return DIRECTIONS[this.angle];
 		if (index == this.angle) return DIRECTIONS[nextAngle];
@@ -230,8 +236,20 @@ class Redirector extends AngledTile {
 	}
 }
 class Rotator extends AngledTile {
+	color = "skyblue";
 	newDirection(dir) {
-		return DIRECTIONS[(dir + this.angle) % 6];
+		return DIRECTIONS[(directionIndex(dir) + this.angle) % 6];
+	}
+	draw() {
+		super.draw();
+		ctx.save();
+		if (this.angle == 4) {
+			ctx.translate(this.hex.center.x, this.hex.center.y);
+			ctx.scale(-1, 1);
+			ctx.translate(-this.hex.center.x, -this.hex.center.y);
+		}
+		this.hex.drawImage("rotator.svg");
+		ctx.restore();
 	}
 }
 const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator];
@@ -374,6 +392,9 @@ class Player {
 		}
 	}
 }
+function directionIndex(dir) {
+	return DIRECTIONS.findIndex(x => x.equals(dir));
+}
 function loadLevel(id) {
 	moves = 0;
 	grid = new Grid(10, 10, innerHeight / 20);
@@ -394,6 +415,14 @@ function scaleCanvas() {
 	canvas.height = innerHeight * devicePixelRatio;
 	ctx.scale(devicePixelRatio, devicePixelRatio);
 	ctx.textBaseline = "top";
+}
+function drawImage(src, x, y, width, height) {
+	if (!images.has(src)) {
+		let img = new Image();
+		img.src = src;
+		images.set(src, img);
+	}
+	ctx.drawImage(images.get(src), x, y, width, height);
 }
 function resetText() {
 	textY = 0;
@@ -416,6 +445,7 @@ function updateMouse(e) {
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
+let images = new Map();
 let textY = 0;
 let lastTime = performance.now();
 let delta;
