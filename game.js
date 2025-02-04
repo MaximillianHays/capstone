@@ -14,7 +14,7 @@ function draw() {
 	resetText();
 	drawText(levelStr);
 	ctx.fillStyle = "gold";
-	ctx.fillText(stars, grid.edgeRadius * 23 + ctx.measureText(levelStr).width, textY);
+	ctx.fillText(stars, getEdgeRadius() * 23 + ctx.measureText(levelStr).width, textY);
 	ctx.fillStyle = "black";
 	drawText("Moves: " + moves);
 	drawText("Target: " + target);
@@ -32,16 +32,32 @@ function draw() {
 	} else if (level == 13) {
 		drawText("You don't slide past sand");
 	}
+	ctx.fillStyle = resetButton.contains(mouse) ? "gold" : "lightgrey";
+	resetButton.draw("fill");
+	ctx.fillStyle = menuButton.contains(mouse) ? "gold" : "lightgrey";
+	menuButton.draw("fill");
+	ctx.fillStyle = "black";
+	ctx.font = Math.floor(getEdgeRadius() * 0.6) + "px monospace";
+	let metrics = ctx.measureText("Reset");
+	ctx.fillText("Reset", getEdgeRadius() * 24 - metrics.width / 2, getButtonY() - metrics.actualBoundingBoxDescent / 2);
+	metrics = ctx.measureText("Menu");
+	ctx.fillText("Menu", getEdgeRadius() * 26 + 2 - metrics.width / 2, getButtonY() - metrics.actualBoundingBoxDescent / 2);
+}
+function getButtonY() {
+	return getEdgeRadius() * Hex.HEIGHT_FACTOR * 18;
 }
 canvas.addEventListener("pointermove", updateMouse);
 canvas.addEventListener("pointerdown", e => {
 	updateMouse(e);
 	player.onClick();
+	if (resetButton.contains(mouse)) loadLevel(level);
 });
 addEventListener("keydown", e => {
 	if (e.key == "r") loadLevel(level);
 	else if (e.key == "Enter" && player.tile.win) loadLevel(++level);
 });
+let resetButton = new Hex(new Vec(getEdgeRadius() * 24, getButtonY()), getEdgeRadius());
+let menuButton = new Hex(new Vec(getEdgeRadius() * 26 + 2, getButtonY()), getEdgeRadius());
 let level = 0;
 let moves = 0;
 loadLevel(0);
