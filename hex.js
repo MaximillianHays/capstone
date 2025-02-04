@@ -294,7 +294,7 @@ class ToggledWall extends AngledTile {
 }
 const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator, Switch, ToggledWall];
 class Grid {
-	constructor(width, height, edgeRadius) {
+	constructor(width = 10, height = 10, edgeRadius = Math.min(innerWidth / 40, innerHeight / 20)) {
 		this.width = width;
 		this.height = height;
 		this.edgeRadius = edgeRadius;
@@ -438,7 +438,7 @@ function directionIndex(dir) {
 }
 function loadLevel(id) {
 	moves = 0;
-	grid = new Grid(10, 10, innerHeight / 20);
+	grid = new Grid();
 	let str = LEVELS[id];
 	player = new Player(grid, +str[0], +str[2]);
 	let ptr = 4;
@@ -468,11 +468,11 @@ function drawImage(src, x, y, width, height) {
 function resetText() {
 	textY = 0;
 	ctx.fillStyle = "black";
-	ctx.font = "40px monospace";
+	ctx.font = Math.floor(grid.edgeRadius * 0.8) + "px monospace";
 }
 function drawText(str) {
-	textY += 50;
-	ctx.fillText(str, 1080, textY);
+	textY += grid.edgeRadius;
+	ctx.fillText(str, grid.edgeRadius * 23, textY);
 }
 function updateDelta() {
 	let time = performance.now();
@@ -490,7 +490,7 @@ let images = new Map();
 let textY = 0;
 let lastTime = performance.now();
 let delta;
-let grid = new Grid(10, 10, innerHeight / 20);
+let grid = new Grid();
 let player;
 let target = 1;
 scaleCanvas();

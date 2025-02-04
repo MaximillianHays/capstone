@@ -14,7 +14,7 @@ function draw() {
 	resetText();
 	drawText(levelStr);
 	ctx.fillStyle = "gold";
-	ctx.fillText(stars, 1080 + ctx.measureText(levelStr).width, textY);
+	ctx.fillText(stars, grid.edgeRadius * 23 + ctx.measureText(levelStr).width, textY);
 	ctx.fillStyle = "black";
 	drawText("Moves: " + moves);
 	drawText("Target: " + target);
