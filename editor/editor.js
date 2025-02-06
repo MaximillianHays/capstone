@@ -58,6 +58,6 @@ addEventListener("keydown", e => {
 });
 let mouseDown = false;
 let angle = 0;
-player = new Player(grid, 0, 9);
+player = new Player(grid, new Vec(0, 9));
 let tile = Wall;
 draw();

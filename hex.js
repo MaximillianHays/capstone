@@ -3,6 +3,9 @@ class Vec {
 		this.x = x;
 		this.y = y;
 	}
+	get normal() {
+		return new Vec(-this.y, this.x);
+	}
 	get length() {
 		return Math.hypot(this.x, this.y);
 	}
@@ -24,7 +27,7 @@ class Vec {
 		return this.sub(other).length;
 	}
 	equals(other) {
-		return Math.abs(this.x - other.x) < EPSILON && Math.abs(this.y == other.y) < EPSILON;
+		return Math.abs(this.x - other.x) < EPSILON && Math.abs(this.y - other.y) < EPSILON;
 	}
 	copy() {
 		return new Vec(this.x, this.y);
@@ -126,6 +129,7 @@ class Tile {
 		return this.newDirection(dir) == null;
 	}
 	outline(color = "white") {
+		ctx.lineWidth = 1;
 		ctx.strokeStyle = color;
 		this.hex.draw("stroke");
 	}
@@ -363,13 +367,14 @@ class Grid {
 	}
 }
 class Player {
-	constructor(grid, x, y) {
+	constructor(grid, loc) {
 		this.grid = grid;
-		this.loc = new Vec(x, y);
+		this.loc = loc;
 		this.stops = [];
 		this.grids = [grid];
 		this.drawLoc = this.tile.hex.center;
 		this.radius = this.grid.edgeRadius / 2;
+		this.moves = 0;
 	}
 	get tile() {
 		return this.grid.getTile(this.loc);
@@ -388,7 +393,7 @@ class Player {
 		this.grids.push(this.grid.copy());
 	}
 	move(dir) {
-		moves++;
+		this.moves++;
 		this.grids = [this.grid.copy()];
 		this.keepMoving(dir);
 		this.adjust();
@@ -431,7 +436,7 @@ class Player {
 			let c = stops[i];
 			let toA = a.sub(b).withLength(1);
 			let toC = c.sub(b).withLength(1);
-			if (toA.equals(toB)) {
+			if (toA.equals(toC.invert())) {
 				newStops.push(b);
 			} else {
 				newStops.push(toA.add(toC).withLength(this.radius).add(b));
@@ -441,12 +446,6 @@ class Player {
 		this.stops = newStops;
 	}
 	draw() {
-		// ctx.beginPath();
-		// ctx.moveTo(this.drawLoc.x, this.drawLoc.y);
-		// for (let x of this.stops) {
-		// 	ctx.lineTo(x.x, x.y);
-		// }
-		// ctx.stroke();
 		this.grids[0].draw();
 		this.approach();
 		ctx.beginPath();
@@ -456,21 +455,29 @@ class Player {
 		if (this.stops.length) return;
 		for (const [tile, dir] of this.tile.adjacency) {
 			let center = tile.hex.center;
-			ctx.fillStyle = tile.hex.contains(mouse) ? "green" : "blue";
-			ctx.beginPath();
-			ctx.arc(center.x, center.y, this.radius, 0, Math.PI * 2);
-			ctx.fill();
+			if (tile.hex.contains(mouse)) {
+				ctx.strokeStyle = "red";
+				let scout = this.copy();
+				scout.move(dir);
+				drawArrow([scout.drawLoc, ...scout.stops], 5, 3, 4.5);
+			} else {
+				ctx.strokeStyle = "blue";
+				let v = center.sub(this.drawLoc).withLength(this.grid.edgeRadius * 0.7);
+				drawArrow([center.sub(v), center.add(v)], this.grid.edgeRadius * 0.6, 1.25, 1.5);
+			}
 		}
+	}
+	copy() {
+		return new Player(grid.copy(), this.loc);
 	}
 }
 function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
 function loadLevel(id) {
-	moves = 0;
 	grid = new Grid();
 	let str = LEVELS[id];
-	player = new Player(grid, +str[0], +str[2]);
+	player = new Player(grid, new Vec(+str[0], +str[2]));
 	let ptr = 4;
 	for (let i = 0; i < 100; i++) {
 		let tile = TILES[str[ptr]];
@@ -503,6 +510,31 @@ function resetText() {
 function drawText(str) {
 	textY += EDGE_RADIUS;
 	ctx.fillText(str, EDGE_RADIUS * 23, textY);
+}
+function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
+	let a = points.at(-2);
+	let b = points.at(-1);
+	let toB = b.sub(a).withLength(1);
+	let width = lineWidth * widthFactor;
+	let length = lineWidth * lengthFactor;
+	let normal = toB.normal.scale(width);
+	let base = b.sub(toB.scale(length));
+	let left = base.add(normal);
+	let right = base.sub(normal);
+	let front = b.sub(toB.scale(length * 0.9));
+	ctx.lineWidth = lineWidth;
+	ctx.beginPath();
+	ctx.moveTo(front.x, front.y);
+	for (const point of points.toReversed().slice(1)) {
+		ctx.lineTo(point.x, point.y);
+	}
+	ctx.stroke();
+	ctx.fillStyle = ctx.strokeStyle;
+	ctx.beginPath();
+	ctx.moveTo(b.x, b.y);
+	ctx.lineTo(left.x, left.y);
+	ctx.lineTo(right.x, right.y);
+	ctx.fill();
 }
 function updateDelta() {
 	let time = performance.now();

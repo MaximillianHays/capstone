@@ -4,9 +4,9 @@ function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	player.draw();
 	let stars = "★☆☆";
-	if (moves <= target) {
+	if (player.moves <= target) {
 		stars = "★★★";
-	} else if (moves <= target + 3) {
+	} else if (player.moves <= target + 3) {
 		stars = "★★☆";
 	}
 	let levelStr = "Level " + (level + 1) + " ";
@@ -15,7 +15,7 @@ function draw() {
 	ctx.fillStyle = "gold";
 	ctx.fillText(stars, EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, textY);
 	ctx.fillStyle = "black";
-	drawText("Moves: " + moves);
+	drawText("Moves: " + player.moves);
 	drawText("Target: " + target);
 	drawText("");
 	drawText("Press R to reset the level");
@@ -55,6 +55,5 @@ addEventListener("keydown", e => {
 let resetButton = new Hex(new Vec(EDGE_RADIUS * 24, getButtonY()), EDGE_RADIUS);
 let menuButton = new Hex(new Vec(EDGE_RADIUS * 26 + 2, getButtonY()), EDGE_RADIUS);
 let level = 0;
-let moves = 0;
 loadLevel(0);
 draw();
