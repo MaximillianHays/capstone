@@ -2,7 +2,6 @@ function draw() {
 	requestAnimationFrame(draw);
 	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	grid.draw();
 	player.draw();
 	resetText();
 	drawText("Current Tile: " + tile.name);

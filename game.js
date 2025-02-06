@@ -2,7 +2,6 @@ function draw() {
 	requestAnimationFrame(draw);
 	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	grid.draw();
 	player.draw();
 	let stars = "★☆☆";
 	if (moves <= target) {
@@ -14,7 +13,7 @@ function draw() {
 	resetText();
 	drawText(levelStr);
 	ctx.fillStyle = "gold";
-	ctx.fillText(stars, getEdgeRadius() * 23 + ctx.measureText(levelStr).width, textY);
+	ctx.fillText(stars, EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, textY);
 	ctx.fillStyle = "black";
 	drawText("Moves: " + moves);
 	drawText("Target: " + target);
@@ -37,14 +36,11 @@ function draw() {
 	ctx.fillStyle = menuButton.contains(mouse) ? "gold" : "lightgrey";
 	menuButton.draw("fill");
 	ctx.fillStyle = "black";
-	ctx.font = Math.floor(getEdgeRadius() * 0.6) + "px monospace";
-	let metrics = ctx.measureText("Reset");
-	ctx.fillText("Reset", getEdgeRadius() * 24 - metrics.width / 2, getButtonY() - metrics.actualBoundingBoxDescent / 2);
-	metrics = ctx.measureText("Menu");
-	ctx.fillText("Menu", getEdgeRadius() * 26 + 2 - metrics.width / 2, getButtonY() - metrics.actualBoundingBoxDescent / 2);
+	resetButton.drawText("Reset");
+	menuButton.drawText("Menu");
 }
 function getButtonY() {
-	return getEdgeRadius() * Hex.HEIGHT_FACTOR * 18;
+	return EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
 }
 canvas.addEventListener("pointermove", updateMouse);
 canvas.addEventListener("pointerdown", e => {
@@ -56,8 +52,8 @@ addEventListener("keydown", e => {
 	if (e.key == "r") loadLevel(level);
 	else if (e.key == "Enter" && player.tile.win) loadLevel(++level);
 });
-let resetButton = new Hex(new Vec(getEdgeRadius() * 24, getButtonY()), getEdgeRadius());
-let menuButton = new Hex(new Vec(getEdgeRadius() * 26 + 2, getButtonY()), getEdgeRadius());
+let resetButton = new Hex(new Vec(EDGE_RADIUS * 24, getButtonY()), EDGE_RADIUS);
+let menuButton = new Hex(new Vec(EDGE_RADIUS * 26 + 2, getButtonY()), EDGE_RADIUS);
 let level = 0;
 let moves = 0;
 loadLevel(0);

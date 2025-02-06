@@ -7,7 +7,9 @@ class Vec {
 		return Math.hypot(this.x, this.y);
 	}
 	withLength(length) {
-		return this.scale(length / this.length);
+		let thisLength = this.length;
+		if (!thisLength) return new Vec(0, 0);
+		return this.scale(length / thisLength);
 	}
 	add(other) {
 		return new Vec(this.x + other.x, this.y + other.y);
@@ -22,7 +24,7 @@ class Vec {
 		return this.sub(other).length;
 	}
 	equals(other) {
-		return this.x == other.x && this.y == other.y;
+		return Math.abs(this.x - other.x) < EPSILON && Math.abs(this.y == other.y) < EPSILON;
 	}
 	copy() {
 		return new Vec(this.x, this.y);
@@ -84,6 +86,12 @@ class Hex {
 		ctx.closePath();
 		ctx[fill]();
 		if (x != 1 || y != 1) ctx.restore();
+	}
+	drawText(str) {
+		ctx.textAlign = "center";
+		ctx.font = Math.floor(this.edgeRadius * 0.6) + "px monospace";
+		ctx.fillText(str, this.center.x, this.center.y - ctx.measureText(str).actualBoundingBoxDescent / 2);
+		ctx.textAlign = "left";
 	}
 	drawImage(src, x, y) {
 		ctx.save();
@@ -254,13 +262,14 @@ class Rotator extends AngledTile {
 	}
 }
 class Switch extends Tile {
-	color = "red";
+	color = "violet";
 	onEnter() {
 		for (const row of this.grid.grid) {
 			for (const hex of row) {
 				if (hex instanceof ToggledWall) hex.angle = !hex.angle;
 			}
 		}
+		return true;
 	}
 	draw() {
 		ctx.fillStyle = "skyblue";
@@ -294,7 +303,7 @@ class ToggledWall extends AngledTile {
 }
 const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator, Switch, ToggledWall];
 class Grid {
-	constructor(width = 10, height = 10, edgeRadius = getEdgeRadius()) {
+	constructor(width = 10, height = 10, edgeRadius = EDGE_RADIUS) {
 		this.width = width;
 		this.height = height;
 		this.edgeRadius = edgeRadius;
@@ -323,14 +332,14 @@ class Grid {
 		}
 		return null;
 	}
-	setTile(tile, loc, ...args) {
+	setTile(tile, loc, angle) {
 		let diameter = this.edgeRadius * 2;
 		let center = new Vec(
 			(loc.x + Grid.rowOffset(loc.y) + 1) * diameter,
 			(loc.y + 1) * diameter * Hex.HEIGHT_FACTOR
 		);
 		let hex = new Hex(center, this.edgeRadius);
-		this.grid[loc.y][loc.x] = new tile(this, hex, loc, ...args);
+		this.grid[loc.y][loc.x] = new tile(this, hex, loc, angle);
 	}
 	getTile(loc) {
 		return this.grid[loc.y]?.[loc.x];
@@ -342,12 +351,23 @@ class Grid {
 			}
 		}
 	}
+	copy() {
+		let result = new Grid(this.width, this.height, this.edgeRadius);
+		for (let y = 0; y < this.height; y++) {
+			for (let x = 0; x < this.width; x++) {
+				let tile = this.grid[y][x];
+				result.setTile(tile.constructor, tile.loc, tile.angle);
+			}
+		}
+		return result;
+	}
 }
 class Player {
 	constructor(grid, x, y) {
 		this.grid = grid;
 		this.loc = new Vec(x, y);
 		this.stops = [];
+		this.grids = [grid];
 		this.drawLoc = this.tile.hex.center;
 		this.radius = this.grid.edgeRadius / 2;
 	}
@@ -359,15 +379,22 @@ class Player {
 		for (const [tile, dir] of this.tile.adjacency) {
 			if (tile.hex.contains(mouse)) {
 				this.move(dir);
-				this.adjust();
 				break;
 			}
 		}
 	}
 	addStop() {
+		console.log(1);
 		this.stops.push(this.tile.hex.center.copy());
+		this.grids.push(this.grid.copy());
 	}
-	move(dir, moved) {
+	move(dir) {
+		moves++;
+		this.grids = [this.grid.copy()];
+		this.keepMoving(dir);
+		this.adjust();
+	}
+	keepMoving(dir) {
 		if (dir.equals(new Vec(0, 0))) return;
 		let nextTile = this.grid.getTile(Grid.adjacentIndex(this.loc, dir));
 		if (!nextTile || nextTile.isStop(dir)) {
@@ -375,12 +402,10 @@ class Player {
 			this.addStop();
 			return;
 		}
-		if (!moved) moves++;
 		this.loc = nextTile.loc;
 		let newDir = nextTile.newDirection(dir);
-		if (!dir.equals(newDir)) this.addStop();
-		nextTile.onEnter();
-		this.move(newDir, true);
+		if (nextTile.onEnter() || !dir.equals(newDir)) this.addStop();
+		this.keepMoving(newDir);
 	}
 	approach() {
 		if (!this.stops.length) return;
@@ -390,10 +415,11 @@ class Player {
 			length += this.stops[i].dist(this.stops[i - 1]);
 		}
 		let speed = (0.3 + length * 0.005) * delta;
-		if (toNextStop.length > speed + 0.0000001) {
+		if (toNextStop.length > speed + EPSILON) {
 			toNextStop = toNextStop.withLength(speed);
 		} else {
 			this.stops.shift();
+			this.grids.shift();
 		}
 		this.drawLoc = this.drawLoc.add(toNextStop);
 	}
@@ -406,7 +432,11 @@ class Player {
 			let c = stops[i];
 			let toA = a.sub(b).withLength(1);
 			let toC = c.sub(b).withLength(1);
-			newStops.push(toA.add(toC).withLength(this.radius).add(b));
+			if (toA.equals(toB)) {
+				newStops.push(b);
+			} else {
+				newStops.push(toA.add(toC).withLength(this.radius).add(b));
+			}
 		}
 		newStops.push(this.stops.at(-1));
 		this.stops = newStops;
@@ -418,6 +448,7 @@ class Player {
 		// 	ctx.lineTo(x.x, x.y);
 		// }
 		// ctx.stroke();
+		this.grids[0].draw();
 		this.approach();
 		ctx.beginPath();
 		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.radius, 0, Math.PI * 2);
@@ -457,9 +488,6 @@ function scaleCanvas() {
 	ctx.scale(devicePixelRatio, devicePixelRatio);
 	ctx.textBaseline = "top";
 }
-function getEdgeRadius() {
-	return Math.min(innerWidth / 40, innerHeight / 20);
-}
 function drawImage(src, x, y, width, height) {
 	if (!images.has(src)) {
 		let img = new Image();
@@ -471,11 +499,11 @@ function drawImage(src, x, y, width, height) {
 function resetText() {
 	textY = 0;
 	ctx.fillStyle = "black";
-	ctx.font = Math.floor(getEdgeRadius() * 0.8) + "px monospace";
+	ctx.font = Math.floor(EDGE_RADIUS * 0.8) + "px monospace";
 }
 function drawText(str) {
-	textY += getEdgeRadius();
-	ctx.fillText(str, getEdgeRadius() * 23, textY);
+	textY += EDGE_RADIUS;
+	ctx.fillText(str, EDGE_RADIUS * 23, textY);
 }
 function updateDelta() {
 	let time = performance.now();
@@ -486,6 +514,8 @@ function updateMouse(e) {
 	mouse.x = e.x;
 	mouse.y = e.y;
 }
+const EPSILON = 0.0000001;
+const EDGE_RADIUS = Math.min(innerWidth / 40, innerHeight / 20);
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
