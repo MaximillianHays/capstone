@@ -431,7 +431,7 @@ class Player {
 			let c = stops[i];
 			let toA = a.sub(b).withLength(1);
 			let toC = c.sub(b).withLength(1);
-			if (toA.equals(toB)) {
+			if (toA.equals(toC.invert())) {
 				newStops.push(b);
 			} else {
 				newStops.push(toA.add(toC).withLength(this.radius).add(b));
