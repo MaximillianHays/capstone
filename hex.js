@@ -384,7 +384,6 @@ class Player {
 		}
 	}
 	addStop() {
-		console.log(1);
 		this.stops.push(this.tile.hex.center.copy());
 		this.grids.push(this.grid.copy());
 	}
