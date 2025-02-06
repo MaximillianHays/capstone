@@ -3,17 +3,20 @@ function draw() {
 	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	player.draw();
-	resetText();
-	drawText("Current Tile: " + tile.name);
-	drawText("Target: " + target);
+	let tileList = "";
 	for (let i = 1; i < TILES.length; i++) {
-		drawText(i + ": " + TILES[i].name);
+		tileList += i + ": " + TILES[i].name + "\n";
 	}
-	drawText("r: Rotate Tile");
-	drawText("p: Set Player Position");
-	drawText("t: Set Target Moves");
-	drawText("e: Export to Clipboard");
-	drawText("l: Load level");
+	drawText(
+`Current Tile: ${tile.name}
+Target: ${target}
+${tileList}
+r: Rotate Tile
+p: Set Player Position
+t: Set Target Moves
+e: Export to Clipboard
+l: Load level`,
+EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 }
 function setTile() {
 	if (!grid.hovered) return;

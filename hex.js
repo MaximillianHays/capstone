@@ -90,11 +90,8 @@ class Hex {
 		ctx[fill]();
 		if (x != 1 || y != 1) ctx.restore();
 	}
-	drawText(str) {
-		ctx.textAlign = "center";
-		ctx.font = Math.floor(this.edgeRadius * 0.6) + "px monospace";
-		ctx.fillText(str, this.center.x, this.center.y - ctx.measureText(str).actualBoundingBoxDescent / 2);
-		ctx.textAlign = "left";
+	drawText(str, ...args) {
+		drawText(str, this.center.x, this.center.y, ...args);
 	}
 	drawImage(src, x, y) {
 		ctx.save();
@@ -139,11 +136,29 @@ class Tile {
 		this.outline();
 	}
 }
+class Button extends Tile {
+	constructor(grid, hex, loc, color, selectColor, text, onClick) {
+		super(grid, hex, loc);
+		this.color = color;
+		this.text = text;
+		this.onClick = onClick;
+		this.selectColor = selectColor;
+	}
+	draw() {
+		ctx.fillStyle = this.hex.contains(mouse) ? this.selectColor : this.color;
+		this.hex.draw("fill");
+		this.outline("black");
+		this.hex.drawText(this.text, BUTTON_FONT, {colors: ["black", "gold"], centerX: true, centerY: true});
+	}
+}
 class AngledTile extends Tile {
 	constructor(grid, hex, loc, angle) {
 		super(grid, hex, loc);
 		this.angle = angle;
 	}
+}
+class Blank extends Tile {
+	draw() {}
 }
 class Ice extends Tile {
 	color = "skyblue";
@@ -162,7 +177,6 @@ class Sand extends Tile {
 }
 class Goal extends Tile {
 	color = "gold";
-	win = true;
 }
 class Mirror extends AngledTile {
 	color = "black";
@@ -307,7 +321,7 @@ class ToggledWall extends AngledTile {
 }
 const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator, Switch, ToggledWall];
 class Grid {
-	constructor(width = 10, height = 10, edgeRadius = EDGE_RADIUS) {
+	constructor(width = 10, height = 10, edgeRadius = EDGE_RADIUS, fill = Ice) {
 		this.width = width;
 		this.height = height;
 		this.edgeRadius = edgeRadius;
@@ -315,7 +329,7 @@ class Grid {
 		for (let y = 0; y < this.height; y++) {
 			this.grid.push([]);
 			for (let x = 0; x < this.width; x++) {
-				this.setTile(Ice, new Vec(x, y));
+				this.setTile(fill, new Vec(x, y));
 			}
 		}
 	}
@@ -336,14 +350,14 @@ class Grid {
 		}
 		return null;
 	}
-	setTile(tile, loc, angle) {
+	setTile(tile, loc, ...args) {
 		let diameter = this.edgeRadius * 2;
 		let center = new Vec(
 			(loc.x + Grid.rowOffset(loc.y) + 1) * diameter,
 			(loc.y + 1) * diameter * Hex.HEIGHT_FACTOR
 		);
 		let hex = new Hex(center, this.edgeRadius);
-		this.grid[loc.y][loc.x] = new tile(this, hex, loc, angle);
+		this.grid[loc.y][loc.x] = new tile(this, hex, loc, ...args);
 	}
 	getTile(loc) {
 		return this.grid[loc.y]?.[loc.x];
@@ -364,6 +378,31 @@ class Grid {
 			}
 		}
 		return result;
+	}
+}
+class Menu extends Grid {
+	constructor() {
+		super(10, 10, EDGE_RADIUS, Blank);
+		let i = 0;
+		let addButton = loc => {
+			if (i > LEVELS.length - 1) {
+				this.setTile(Wall, loc);
+				i++;
+				return;
+			}
+			let closedI = i;
+			this.setTile(Button, loc, "white", "skyblue", i + 1 + "\n★★★", () => {
+				loadLevel(closedI);
+				inMenu = false;
+			});
+			i++;
+		};
+		for (const center of [new Vec(2, 3), new Vec(6, 3), new Vec(2, 7), new Vec(6, 7)]) {
+			for (const dir of DIRECTIONS.toReversed()) {
+				addButton(Grid.adjacentIndex(center, dir));
+			}
+			addButton(center);
+		}
 	}
 }
 class Player {
@@ -453,17 +492,20 @@ class Player {
 		ctx.fillStyle = "red";
 		ctx.fill();
 		if (this.stops.length) return;
+		ctx.strokeStyle = "blue";
 		for (const [tile, dir] of this.tile.adjacency) {
-			let center = tile.hex.center;
+			if (!tile.hex.contains(mouse)) {
+				let center = tile.hex.center;
+				let v = center.sub(this.drawLoc).withLength(this.grid.edgeRadius * 0.7);
+				drawArrow([center.sub(v), center.add(v)], this.grid.edgeRadius * 0.6, 1.25, 1.5);
+			}
+		}
+		ctx.strokeStyle = "red";
+		for (const [tile, dir] of this.tile.adjacency) {
 			if (tile.hex.contains(mouse)) {
-				ctx.strokeStyle = "red";
 				let scout = this.copy();
 				scout.move(dir);
 				drawArrow([scout.drawLoc, ...scout.stops], 5, 3, 4.5);
-			} else {
-				ctx.strokeStyle = "blue";
-				let v = center.sub(this.drawLoc).withLength(this.grid.edgeRadius * 0.7);
-				drawArrow([center.sub(v), center.add(v)], this.grid.edgeRadius * 0.6, 1.25, 1.5);
 			}
 		}
 	}
@@ -487,6 +529,7 @@ function loadLevel(id) {
 		grid.setTile(tile, new Vec(i % 10, Math.floor(i / 10)), angle);
 	}
 	target = +str.substring(ptr);
+	level = id;
 }
 function scaleCanvas() {
 	canvas.width = innerWidth * devicePixelRatio;
@@ -502,14 +545,25 @@ function drawImage(src, x, y, width, height) {
 	}
 	ctx.drawImage(images.get(src), x, y, width, height);
 }
-function resetText() {
-	textY = 0;
-	ctx.fillStyle = "black";
-	ctx.font = Math.floor(EDGE_RADIUS * 0.8) + "px monospace";
-}
-function drawText(str) {
-	textY += EDGE_RADIUS;
-	ctx.fillText(str, EDGE_RADIUS * 23, textY);
+function drawText(str, x, y, font, {
+	color = "black",
+	colors = [],
+	spacing = 1,
+	centerX = false,
+	centerY = false
+} = {}) {
+	let lines = str.split("\n");
+	ctx.textAlign = centerX ? "center" : "left";
+	let fontSize = parseInt(font);
+	ctx.font = font;
+	y += ctx.measureText(lines[0]).actualBoundingBoxAscent;
+	if (centerY) {
+		y -= lines.length * fontSize / 2;
+	}
+	for (let i = 0; i < lines.length; i++) {
+		ctx.fillStyle = colors[i] ?? color;
+		ctx.fillText(lines[i], x, y + i * fontSize * spacing);
+	}
 }
 function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
 	let a = points.at(-2);
@@ -547,6 +601,8 @@ function updateMouse(e) {
 }
 const EPSILON = 0.0000001;
 const EDGE_RADIUS = Math.min(innerWidth / 40, innerHeight / 20);
+const UI_FONT = EDGE_RADIUS * 0.8 + "px monospace";
+const BUTTON_FONT = EDGE_RADIUS * 0.6 + "px monospace";
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
@@ -556,6 +612,7 @@ let lastTime = performance.now();
 let delta;
 let grid = new Grid();
 let player;
+let level;
 let target = 1;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);
