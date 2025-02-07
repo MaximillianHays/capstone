@@ -447,7 +447,6 @@ class Player {
 		if (dir.equals(new Vec(0, 0))) return;
 		let nextTile = this.grid.getTile(Grid.adjacentIndex(this.loc, dir));
 		if (!nextTile || nextTile.isStop(dir)) {
-			// this.tile.color = "lime";
 			this.addStop();
 			return;
 		}
@@ -490,8 +489,12 @@ class Player {
 		newStops.push(this.stops.at(-1));
 		this.stops = newStops;
 	}
-	draw() {
-		this.grids[0].draw();
+	draw(real) {
+		if (real) {
+			this.grid.draw();
+		} else {
+			this.grids[0].draw();
+		}
 		this.approach();
 		ctx.beginPath();
 		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.radius, 0, Math.PI * 2);
