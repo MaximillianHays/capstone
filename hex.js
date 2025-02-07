@@ -137,18 +137,19 @@ class Tile {
 	}
 }
 class Button extends Tile {
-	constructor(grid, hex, loc, color, selectColor, text, onClick) {
+	constructor(grid, hex, loc, color, selectColor, outlineColor, text, onClick) {
 		super(grid, hex, loc);
 		this.color = color;
+		this.selectColor = selectColor;
+		this.outlineColor = outlineColor;
 		this.text = text;
 		this.onClick = onClick;
-		this.selectColor = selectColor;
 	}
 	draw() {
 		ctx.fillStyle = this.hex.contains(mouse) ? this.selectColor : this.color;
 		this.hex.draw("fill");
-		this.outline("black");
-		this.hex.drawText(this.text, BUTTON_FONT, {colors: ["black", "gold"], centerX: true, centerY: true});
+		this.outline(this.outlineColor);
+		this.hex.drawText(this.text, BUTTON_FONT, {colors: [this.color == "black" ? "white" : "black", "gold"], centerX: true, centerY: true});
 	}
 }
 class AngledTile extends Tile {
@@ -391,10 +392,15 @@ class Menu extends Grid {
 				return;
 			}
 			let closedI = i;
-			this.setTile(Button, loc, "white", "skyblue", i + 1 + "\n★★★", () => {
-				loadLevel(closedI);
-				inMenu = false;
-			});
+			let req = getStarRequirement(i);
+			if (starCount() < req) {
+				this.setTile(Button, loc, "black", "black", "white", req + "★");
+			} else {
+				this.setTile(Button, loc, "white", "skyblue", "black", i + 1 + "\n" + starStr(stars[i]), () => {
+					inMenu = false;
+					loadLevel(closedI);
+				});
+			}
 			i++;
 		};
 		for (const center of [new Vec(2, 3), new Vec(6, 3), new Vec(2, 7), new Vec(6, 7)]) {
@@ -517,6 +523,10 @@ function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
 function loadLevel(id) {
+	if (starCount() < getStarRequirement(id)) {
+		enterMenu();
+		return;
+	}
 	grid = new Grid();
 	let str = LEVELS[id];
 	player = new Player(grid, new Vec(+str[0], +str[2]));
@@ -531,11 +541,23 @@ function loadLevel(id) {
 	target = +str.substring(ptr);
 	level = id;
 }
+function starCount() {
+	return stars.reduce((sum, a) => sum + a, 0);
+}
+function starStr(count) {
+	return "★".repeat(count) + "☆".repeat(3 - count);
+}
+function getStarRequirement(id) {
+	if (id % 7 == 6) {
+		return Math.ceil(id / 7) * 15;
+	} else {
+		return Math.floor(id / 7) * 10;
+	}
+}
 function scaleCanvas() {
 	canvas.width = innerWidth * devicePixelRatio;
 	canvas.height = innerHeight * devicePixelRatio;
 	ctx.scale(devicePixelRatio, devicePixelRatio);
-	ctx.textBaseline = "top";
 }
 function drawImage(src, x, y, width, height) {
 	if (!images.has(src)) {
@@ -556,14 +578,19 @@ function drawText(str, x, y, font, {
 	ctx.textAlign = centerX ? "center" : "left";
 	let fontSize = parseInt(font);
 	ctx.font = font;
-	y += ctx.measureText(lines[0]).actualBoundingBoxAscent;
+	let metrics = ctx.measureText("M");
+	y += metrics.actualBoundingBoxAscent;
 	if (centerY) {
-		y -= lines.length * fontSize / 2;
+		y -= (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + (lines.length - 1) * fontSize) / 2;
 	}
 	for (let i = 0; i < lines.length; i++) {
 		ctx.fillStyle = colors[i] ?? color;
 		ctx.fillText(lines[i], x, y + i * fontSize * spacing);
 	}
+}
+function enterMenu() {
+	inMenu = true;
+	menu = new Menu();
 }
 function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
 	let a = points.at(-2);
@@ -613,6 +640,9 @@ let delta;
 let grid = new Grid();
 let player;
 let level;
+let inMenu;
+let menu;
+let stars = new Array(LEVELS.length).fill(0);
 let target = 1;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);
