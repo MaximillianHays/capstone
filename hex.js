@@ -250,7 +250,7 @@ class BigMirror extends AngledTile {
 	}
 }
 class Redirector extends AngledTile {
-	color = "yellow";
+	color = "red";
 	newDirection(dir) {
 		return DIRECTIONS[this.angle];
 	}
@@ -393,8 +393,13 @@ class Menu extends Grid {
 			}
 			let closedI = i;
 			let req = getStarRequirement(i);
-			if (starCount() < req) {
-				this.setTile(Button, loc, "black", "black", "white", req + "★");
+			let count = starCount();
+			if (count < req) {
+				let outline = "white";
+				if (i % 7 == 6 && count >= getStarRequirement(i - 1)) {
+					outline = "black";
+				}
+				this.setTile(Button, loc, "black", "black", outline, req + "★");
 			} else {
 				this.setTile(Button, loc, "white", "skyblue", "black", i + 1 + "\n" + starStr(stars[i]), () => {
 					inMenu = false;
