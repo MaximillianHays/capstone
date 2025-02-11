@@ -2,7 +2,7 @@ function draw() {
 	requestAnimationFrame(draw);
 	updateDelta();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	player.draw();
+	player.draw(true);
 	let tileList = "";
 	for (let i = 1; i < TILES.length; i++) {
 		tileList += i + ": " + TILES[i].name + "\n";
@@ -63,4 +63,5 @@ let mouseDown = false;
 let angle = 0;
 player = new Player(grid, new Vec(0, 9));
 let tile = Wall;
+stars.fill(3);
 draw();
