@@ -26,7 +26,6 @@ function drawWinBox() {
 	drawText(starStr(calcStars()), BOX_CENTER_X, BOX_Y + EDGE_RADIUS * 2, UI_FONT, {centerX: true, color: "gold"});
 	nextButton.draw();
 }
-
 function drawGame() {
 	player.draw();
 	let levelStr = "Level " + (level + 1) + " ";
@@ -43,7 +42,10 @@ ${level ? "" : "The red circle is you\nThe gold hex is the goal"}`,
 EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
-	if (player.winning) drawWinBox(stars);
+	if (player.winning) {
+		stars[level] = Math.max(stars[level], calcStars());
+		drawWinBox(stars);
+	}
 }
 function calcStars() {
 	if (player.moves <= target) {
@@ -61,13 +63,12 @@ canvas.addEventListener("pointerdown", e => {
 		let hovered = menu.hovered;
 		if (hovered) menu.getTile(hovered).onClick?.();
 	} else {
+		if (resetButton.hex.contains(mouse)) loadLevel(level);
+		if (menuButton.hex.contains(mouse)) enterMenu();
 		if (player.winning) {
-			stars[level] = Math.max(stars[level], calcStars());
 			if (nextButton.hex.contains(mouse)) loadLevel(level + 1);
 		} else {
 			player.onClick();
-			if (resetButton.hex.contains(mouse)) loadLevel(level);
-			if (menuButton.hex.contains(mouse)) enterMenu();
 		}
 	}
 });
