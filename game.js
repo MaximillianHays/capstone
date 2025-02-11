@@ -11,12 +11,13 @@ function draw() {
 	}
 }
 function drawWinBox(stars) {
-	let boxWidth = 300, boxHeight = 200;
+	let boxWidth = 300;
+	let boxHeight = 200;
 	let x = 300;
 	let y = 200;
 
 	ctx.fillStyle = "white";
-  ctx.fillRect(x - 65, y, boxWidth, boxHeight);
+	ctx.fillRect(x - 65, y, boxWidth, boxHeight);
 
 	ctx.strokeStyle = "silver";
 	ctx.lineWidth = 4;
@@ -50,14 +51,13 @@ function drawGame() {
 Moves: ${player.moves}
 Target: ${target}
 
-${level ? "" : "\n\nThe red circle is you\nThe gold hex is the goal"}`,
+Press R to reset the level
+
+${level ? "" : "The red circle is you\nThe gold hex is the goal"}`,
 EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
-	if (win) {
-		console.log("win");
-		drawWinBox(stars);
-}
+	if (win) drawWinBox(stars);
 }
 function calcStars() {
 	if (player.moves <= target) {
@@ -85,12 +85,14 @@ canvas.addEventListener("pointerdown", e => {
 		if (win && nextLevelButton) {
 			let {x, y, width, height} = nextLevelButton;
 			if (mouse.x >= x && mouse.x <= x + width && mouse.y >= y && mouse.y <= y + height) {
-					console.log("Next level button clicked!");
-					win = false;
-					loadLevel(++level);
+				win = false;
+				loadLevel(level + 1);
 			}
 	}
 	}
+});
+addEventListener("keydown", e => {
+	if (e.key == "r") loadLevel(level);
 });
 let win = false;
 let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Reset");
