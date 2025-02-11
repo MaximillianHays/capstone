@@ -429,6 +429,9 @@ class Player {
 	get tile() {
 		return this.grid.getTile(this.loc);
 	}
+	get winning() {
+		return this.tile instanceof Goal;
+	}
 	onClick() {
 		if (this.stops.length) return;
 		for (const [tile, dir] of this.tile.adjacency) {
@@ -505,7 +508,7 @@ class Player {
 		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.radius, 0, Math.PI * 2);
 		ctx.fillStyle = "red";
 		ctx.fill();
-		if (this.stops.length) return;
+		if (this.stops.length || this.winning) return;
 		ctx.strokeStyle = "blue";
 		for (const [tile, dir] of this.tile.adjacency) {
 			if (!tile.hex.contains(mouse)) {

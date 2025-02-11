@@ -10,35 +10,21 @@ function draw() {
 		drawGame();
 	}
 }
-function drawWinBox(stars) {
-	let boxWidth = 300;
-	let boxHeight = 200;
-	let x = 300;
-	let y = 200;
-
+const BOX_WIDTH = EDGE_RADIUS * 7;
+const BOX_HEIGHT = EDGE_RADIUS * 6;
+const BOX_X = EDGE_RADIUS * 10 - EDGE_RADIUS * 1.5;
+const BOX_Y = EDGE_RADIUS * 7;
+const BOX_CENTER_X = BOX_X + BOX_WIDTH / 2;
+const BOX_CENTER_Y = BOX_Y + BOX_HEIGHT / 2;
+function drawWinBox() {
 	ctx.fillStyle = "white";
-	ctx.fillRect(x - 65, y, boxWidth, boxHeight);
-
+	ctx.fillRect(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
 	ctx.strokeStyle = "silver";
 	ctx.lineWidth = 4;
-	ctx.strokeRect(x - 65, y, boxWidth, boxHeight);
-
-	ctx.fillStyle = "black";
-	ctx.font = "24px Arial";
-	ctx.fillText(`Level ${level + 1} Completed!`, x + 80, y + 60);
-
-	ctx.fillStyle = "gold";
-	ctx.fillText(`${starStr(calcStars())}`, x + 80, y + 100);
-
-	ctx.fillStyle = "pink";
-	ctx.fillRect(x + 60, y + 125, 110, 40);
-
-	ctx.fillStyle = "black";
-	ctx.font = "20px Arial";
-	ctx.fillText("Next Level", x + 115, y + 155);
-
-	// Store button position
-	nextLevelButton = {x: x + 100, y: y + 130, width: 100, height: 40};
+	ctx.strokeRect(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
+	drawText(`Level ${level + 1} Completed!`, BOX_CENTER_X, BOX_Y + EDGE_RADIUS, BUTTON_FONT, {centerX: true, color: "black"});
+	drawText(starStr(calcStars()), BOX_CENTER_X, BOX_Y + EDGE_RADIUS * 2, UI_FONT, {centerX: true, color: "gold"});
+	nextButton.draw();
 }
 
 function drawGame() {
@@ -57,7 +43,7 @@ ${level ? "" : "The red circle is you\nThe gold hex is the goal"}`,
 EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
-	if (win) drawWinBox(stars);
+	if (player.winning) drawWinBox(stars);
 }
 function calcStars() {
 	if (player.moves <= target) {
@@ -75,27 +61,21 @@ canvas.addEventListener("pointerdown", e => {
 		let hovered = menu.hovered;
 		if (hovered) menu.getTile(hovered).onClick?.();
 	} else {
-		player.onClick();
-		if (resetButton.hex.contains(mouse)) loadLevel(level);
-		if (menuButton.hex.contains(mouse)) enterMenu();
-		if (player.tile instanceof Goal) {
-			win = true;
+		if (player.winning) {
 			stars[level] = Math.max(stars[level], calcStars());
+			if (nextButton.hex.contains(mouse)) loadLevel(level + 1);
+		} else {
+			player.onClick();
+			if (resetButton.hex.contains(mouse)) loadLevel(level);
+			if (menuButton.hex.contains(mouse)) enterMenu();
 		}
-		if (win && nextLevelButton) {
-			let {x, y, width, height} = nextLevelButton;
-			if (mouse.x >= x && mouse.x <= x + width && mouse.y >= y && mouse.y <= y + height) {
-				win = false;
-				loadLevel(level + 1);
-			}
-	}
 	}
 });
 addEventListener("keydown", e => {
 	if (e.key == "r") loadLevel(level);
 });
-let win = false;
 let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Reset");
 let menuButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Menu");
+let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 1.5), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Next");
 enterMenu();
 draw();
