@@ -522,7 +522,7 @@ class Player {
 			if (tile.hex.contains(mouse)) {
 				let scout = this.copy();
 				scout.move(dir);
-				drawArrow([scout.drawLoc, ...scout.stops], 5, 3, 4.5);
+				drawArrow([scout.drawLoc, ...scout.stops], this.grid.edgeRadius / 8, 3, 4.5);
 			}
 		}
 	}
