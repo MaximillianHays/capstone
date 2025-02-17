@@ -403,7 +403,7 @@ class Menu extends Grid {
 			} else {
 				this.setTile(Button, loc, "white", "skyblue", "black", i + 1 + "\n" + starStr(stars[i]), () => {
 					inMenu = false;
-					loadLevel(closedI);
+					loadLevel(closedI, true);
 				});
 			}
 			i++;
@@ -533,10 +533,17 @@ class Player {
 function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
-function loadLevel(id) {
+function loadLevel(id, logging) {
 	if (starCount() < getStarRequirement(id)) {
 		enterMenu();
 		return;
+	}
+	if (logging) {
+		log({
+			action: "Start Level",
+			stars: starCount(),
+			level: id
+		});
 	}
 	grid = new Grid();
 	let str = LEVELS[id];
