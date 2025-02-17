@@ -66,7 +66,8 @@ function resetLevel() {
 function log(event) {
 	logs.push({
 		...event,
-		timestamp: new Date().toISOString(),
+		dayStamp: new Date().toISOString(),
+		timeStamp: Math.floor((new Date() - new Date("2/16/2025"))) + logs.length,
 		userID
 	});
 }
