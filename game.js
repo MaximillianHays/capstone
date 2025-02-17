@@ -4,7 +4,7 @@ function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	if (inMenu) {
 		menu.draw();
-		drawText("Name goes here", EDGE_RADIUS * 11, EDGE_RADIUS * 1.5, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
+		drawText("Level Select", EDGE_RADIUS * 11, EDGE_RADIUS * 1.5, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
 		drawText(starCount() + "★", EDGE_RADIUS * 11, EDGE_RADIUS * 10, UI_FONT, {centerX: true});
 	} else {
 		drawGame();

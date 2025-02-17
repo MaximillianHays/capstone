@@ -566,7 +566,9 @@ function starStr(count) {
 	return "★".repeat(count) + "☆".repeat(3 - count);
 }
 function getStarRequirement(id) {
-	if (id % 7 == 6) {
+	if (id && id < 6) {
+		return 1;
+	} else if (id % 7 == 6) {
 		return Math.ceil(id / 7) * 15;
 	} else {
 		return Math.floor(id / 7) * 10;
