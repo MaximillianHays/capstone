@@ -29,6 +29,18 @@ function drawWinBox() {
 function drawGame() {
 	player.draw();
 	let levelStr = "Level " + (level + 1) + " ";
+	let tutorial = "";
+	if (!level) {
+		tutorial = "The red circle is you\nThe gold hex is the goal";
+	} else if (level == 7) {
+		tutorial = "You don't slide through sand";
+	} else if (level == 14) {
+		tutorial = "You bounce off mirrors";
+	} else if (level == 21) {
+		tutorial = "Redirectors set your direction";
+	} else if (level == 24) {
+		tutorial = "Some walls are toggled by switches";
+	}
 	ctx.font = UI_FONT;
 	drawText(starStr(calcStars()), EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, EDGE_RADIUS, UI_FONT, {color: "gold"});
 	drawText(
@@ -36,7 +48,9 @@ function drawGame() {
 Moves: ${player.moves}
 Target: ${target}
 
-${level ? "" : "The red circle is you\nThe gold hex is the goal"}`,
+Press R to reset the level
+
+${tutorial}`,
 EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
@@ -67,6 +81,16 @@ function log(event) {
 		dayStamp: new Date().toISOString(),
 		timeStamp: Math.floor((new Date() - new Date("2/16/2025"))) + logs.length
 	});
+	if (logs.length > 500) sendLogs();
+}
+function sendLogs() {
+	if (!logs.length) return;
+	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
+		body: JSON.stringify({logs, id: userID}),
+		method: "POST",
+		keepalive: true
+	});
+	logs = [];
 }
 const BUTTON_Y = EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
 canvas.addEventListener("pointermove", updateMouse);
@@ -100,14 +124,9 @@ addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
 });
 addEventListener("beforeunload", () => {
-	if (!logs.length) return;
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
-	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-		body: JSON.stringify({logs, id: userID}),
-		method: "POST",
-		keepalive: true
-	});
+	sendLogs();
 });
 let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Reset");
 let menuButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Menu");
