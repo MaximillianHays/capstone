@@ -36,8 +36,6 @@ function drawGame() {
 Moves: ${player.moves}
 Target: ${target}
 
-Press R to reset the level
-
 ${level ? "" : "The red circle is you\nThe gold hex is the goal"}`,
 EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
