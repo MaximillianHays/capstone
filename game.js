@@ -67,8 +67,7 @@ function log(event) {
 	logs.push({
 		...event,
 		dayStamp: new Date().toISOString(),
-		timeStamp: Math.floor((new Date() - new Date("2/16/2025"))) + logs.length,
-		userID
+		timeStamp: Math.floor((new Date() - new Date("2/16/2025"))) + logs.length
 	});
 }
 const BUTTON_Y = EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
@@ -107,7 +106,7 @@ addEventListener("beforeunload", () => {
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-		body: JSON.stringify(logs),
+		body: JSON.stringify({logs, id: userID}),
 		method: "POST",
 		keepalive: true
 	});
