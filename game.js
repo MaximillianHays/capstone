@@ -135,6 +135,7 @@ canvas.addEventListener("pointerdown", e => {
 addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
 });
+addEventListener("beforeunload", closeGame);
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState == "hidden") {
 		closeGame();
