@@ -82,7 +82,7 @@ function log(event) {
 		date: new Date().toISOString(),
 		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logNumber++
 	});
-	if (logs.length == 25) sendLogs();
+	sendLogs();
 }
 function sendLogs() {
 	if (!logs.length || userID == "test") return;
