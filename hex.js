@@ -178,6 +178,17 @@ class Sand extends Tile {
 }
 class Goal extends Tile {
 	color = "gold";
+	draw() {
+		super.draw();
+		ctx.save();
+		ctx.lineWidth = 6;
+		ctx.strokeStyle = "orange";
+		this.hex.draw("clip");
+		for (let i = 1.2 - (lastTime * 0.0002) % 0.2; i > 0; i -= 0.2) {
+			this.hex.draw("stroke", i, i);
+		}
+		ctx.restore();
+	}
 }
 class Mirror extends AngledTile {
 	color = "black";
