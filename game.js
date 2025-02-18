@@ -85,7 +85,8 @@ function log(event) {
 	if (logs.length == 25) sendLogs();
 }
 function sendLogs() {
-	if (!logs.length || userID == "test") return;
+	if (!logs.length) return;
+	if (userID == "test") return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
 		body: JSON.stringify({logs, uid: userID, sid: sessionId}),
 		method: "POST",
@@ -93,10 +94,10 @@ function sendLogs() {
 	});
 	logs = [];
 }
-function closeGame() {
+function saveGame(quit) {
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
-	log({
+	if (quit) log({
 		action: "Leave Game",
 		stars: starCount(),
 		moves: player?.moves,
@@ -134,11 +135,17 @@ canvas.addEventListener("pointerdown", e => {
 });
 addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
+	if (e.altKey && e.key == "F4") saveGame(true);
 });
-addEventListener("beforeunload", closeGame);
+addEventListener("beforeunload", () => {
+	saveGame(true);
+});
+document.addEventListener("mouseleave", () => {
+	saveGame();
+});
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState == "hidden") {
-		closeGame();
+		saveGame();
 	} else {
 		loadStars();
 		if (inMenu) enterMenu();
