@@ -80,7 +80,7 @@ function log(event) {
 	logs.push({
 		...event,
 		date: new Date().toISOString(),
-		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logs.length
+		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logNumber++
 	});
 	if (logs.length == 25) sendLogs();
 }
@@ -144,6 +144,7 @@ let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), 
 let menuButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Menu");
 let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 1.5), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Next");
 let logs = [];
+let logNumber = 0;
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
 let sessionId = crypto.randomUUID();
 loadStars();
