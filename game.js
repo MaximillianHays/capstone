@@ -82,16 +82,27 @@ function log(event) {
 		date: new Date().toISOString(),
 		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logNumber++
 	});
-	sendLogs();
+	if (logs.length == 25) sendLogs();
 }
 function sendLogs() {
-	if (!logs.length || userID == "test") return;
+	if (!logs.length) return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
 		body: JSON.stringify({logs, uid: userID, sid: sessionId}),
 		method: "POST",
 		keepalive: true
 	});
 	logs = [];
+}
+function closeGame() {
+	localStorage.setItem("id", userID);
+	localStorage.setItem("stars", JSON.stringify(stars));
+	log({
+		action: "Leave Game",
+		stars: starCount(),
+		moves: player?.moves,
+		level
+	});
+	sendLogs();
 }
 const BUTTON_Y = EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
 canvas.addEventListener("pointermove", updateMouse);
@@ -126,15 +137,7 @@ addEventListener("keydown", e => {
 });
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState == "hidden") {
-		localStorage.setItem("id", userID);
-		localStorage.setItem("stars", JSON.stringify(stars));
-		log({
-			action: "Leave Game",
-			stars: starCount(),
-			moves: player?.moves,
-			level
-		});
-		sendLogs();
+		closeGame();
 	} else {
 		loadStars();
 		if (inMenu) enterMenu();
