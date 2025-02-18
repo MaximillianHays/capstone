@@ -131,7 +131,7 @@ document.addEventListener("visibilitychange", () => {
 		log({
 			action: "Leave Game",
 			stars: starCount(),
-			moves: player.moves,
+			moves: player?.moves,
 			level
 		});
 		sendLogs();
