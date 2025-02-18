@@ -322,10 +322,11 @@ class ToggledWall extends AngledTile {
 }
 const TILES = [, Ice, Wall, Sand, Goal, Mirror, Redirector, Rotator, Switch, ToggledWall];
 class Grid {
-	constructor(width = 10, height = 10, edgeRadius = EDGE_RADIUS, fill = Ice) {
+	constructor(width = 10, height = 10, edgeRadius = EDGE_RADIUS, fill = Ice, loc = new Vec(0, 0)) {
 		this.width = width;
 		this.height = height;
 		this.edgeRadius = edgeRadius;
+		this.loc = loc;
 		this.grid = [];
 		for (let y = 0; y < this.height; y++) {
 			this.grid.push([]);
@@ -357,7 +358,7 @@ class Grid {
 			(loc.x + Grid.rowOffset(loc.y) + 1) * diameter,
 			(loc.y + 1) * diameter * Hex.HEIGHT_FACTOR
 		);
-		let hex = new Hex(center, this.edgeRadius);
+		let hex = new Hex(center.add(this.loc), this.edgeRadius);
 		this.grid[loc.y][loc.x] = new tile(this, hex, loc, ...args);
 	}
 	getTile(loc) {
@@ -383,7 +384,7 @@ class Grid {
 }
 class Menu extends Grid {
 	constructor() {
-		super(10, 10, EDGE_RADIUS, Blank);
+		super(10, 10, EDGE_RADIUS, Blank, new Vec(innerWidth / 2 - EDGE_RADIUS * 11, innerHeight / 2 - EDGE_RADIUS * 11 * Hex.HEIGHT_FACTOR));
 		let i = 0;
 		let addButton = loc => {
 			if (i > LEVELS.length - 1) {
@@ -414,6 +415,11 @@ class Menu extends Grid {
 			}
 			addButton(center);
 		}
+	}
+	draw() {
+		super.draw();
+		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
+		drawText(starCount() + "★", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 10 + this.loc.y, UI_FONT, {centerX: true});
 	}
 }
 class Player {

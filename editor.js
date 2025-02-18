@@ -56,7 +56,7 @@ addEventListener("keydown", e => {
 		navigator.clipboard.writeText(str + " " + target + "\",");
 	} else if (e.key == "l") {
 		let id = prompt("Which level index would you like to load?");
-		if (id) loadLevel(+id);
+		if (id) loadLevel(id - 1);
 	}
 });
 let mouseDown = false;
