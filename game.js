@@ -85,7 +85,7 @@ function log(event) {
 	if (logs.length == 25) sendLogs();
 }
 function sendLogs() {
-	if (!logs.length) return;
+	if (!logs.length || userID == "test") return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
 		body: JSON.stringify({logs, uid: userID, sid: sessionId}),
 		method: "POST",
