@@ -116,13 +116,21 @@ canvas.addEventListener("pointerdown", e => {
 		let reset = resetButton.hex.contains(mouse);
 		let menu = menuButton.hex.contains(mouse);
 		let next = nextButton.hex.contains(mouse);
-		if (player.winning && (reset || menu || next)) {
-			log({
-				action: "Finish Level",
-				stars: calcStars(),
-				moves: player.moves,
-				level
-			});
+		if (reset || menu || next) {
+			if (player.winning) {
+				log({
+					action: "Finish Level",
+					stars: calcStars(),
+					moves: player.moves,
+					level
+				});
+			} else if (!next) {
+				log({
+					action: "Exit Level",
+					moves: player.moves,
+					level
+				});
+			}
 		}
 		if (reset) resetLevel();
 		if (menu) enterMenu();
