@@ -40,7 +40,7 @@ function drawGame() {
 		tutorial = "Some walls are toggled by switches";
 	}
 	ctx.font = UI_FONT;
-	drawText(starStr(calcStars()), EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, EDGE_RADIUS, UI_FONT, {color: "gold"});
+	drawText(starStr(stars[level]), EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, EDGE_RADIUS, UI_FONT, {color: "gold"});
 	drawText(
 `${levelStr}
 Moves: ${player.moves}
@@ -72,6 +72,9 @@ function resetLevel() {
 		level
 	});
 	loadLevel(level);
+}
+function loadStars() {
+	if (localStorage.getItem("stars")) stars = JSON.parse(localStorage.getItem("stars"));
 }
 function log(event) {
 	logs.push({
@@ -121,16 +124,21 @@ canvas.addEventListener("pointerdown", e => {
 addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
 });
-addEventListener("beforeunload", () => {
-	localStorage.setItem("id", userID);
-	localStorage.setItem("stars", JSON.stringify(stars));
-	log({
-		action: "Close Game",
-		stars: starCount(),
-		moves: player.moves,
-		level
-	});
-	sendLogs();
+document.addEventListener("visibilitychange", () => {
+	if (document.visibilityState == "hidden") {
+		localStorage.setItem("id", userID);
+		localStorage.setItem("stars", JSON.stringify(stars));
+		log({
+			action: "Leave Game",
+			stars: starCount(),
+			moves: player.moves,
+			level
+		});
+		sendLogs();
+	} else {
+		loadStars();
+		if (inMenu) enterMenu();
+	}
 });
 let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Reset");
 let menuButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Menu");
@@ -138,6 +146,6 @@ let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + E
 let logs = [];
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
 let sessionId = crypto.randomUUID();
-if (localStorage.getItem("stars")) stars = JSON.parse(localStorage.getItem("stars"));
+loadStars();
 enterMenu();
 draw();
