@@ -78,15 +78,15 @@ function resetLevel() {
 function log(event) {
 	logs.push({
 		...event,
-		dayStamp: new Date().toISOString(),
-		timeStamp: Math.floor((new Date() - new Date("2/16/2025"))) + logs.length
+		date: new Date().toISOString(),
+		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logs.length
 	});
 	if (logs.length > 500) sendLogs();
 }
 function sendLogs() {
 	if (!logs.length) return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-		body: JSON.stringify({logs, id: userID}),
+		body: JSON.stringify({logs, uid: userID, sid: sessionId}),
 		method: "POST",
 		keepalive: true
 	});
@@ -126,6 +126,12 @@ addEventListener("keydown", e => {
 addEventListener("beforeunload", () => {
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
+	log({
+		action: "Close Game",
+		stars: starCount(),
+		moves: player.moves,
+		level
+	});
 	sendLogs();
 });
 let resetButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Reset");
@@ -133,6 +139,7 @@ let menuButton = new Button(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), E
 let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 1.5), EDGE_RADIUS), null, "lightgrey", "gold", "white", "Next");
 let logs = [];
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
+let sessionId = crypto.randomUUID();
 if (localStorage.getItem("stars")) stars = JSON.parse(localStorage.getItem("stars"));
 enterMenu();
 draw();
