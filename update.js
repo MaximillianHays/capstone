@@ -5,6 +5,7 @@ function swapStars(a, b) {
 	localStorage.setItem("stars", JSON.stringify(stars));
 }
 let version = +localStorage.getItem("version") ?? 0;
+if (!localStorage.getItem("initialVersion")) localStorage.setItem("initialVersion", version);
 switch (version) {
 	case 0:
 		swapStars(3, 4);
