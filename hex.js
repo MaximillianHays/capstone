@@ -547,11 +547,16 @@ class Player {
 		return new Player(grid.copy(), this.loc);
 	}
 }
+function swap(arr, a, b) {
+	let temp = arr[a];
+	arr[a] = arr[b];
+	arr[b] = temp;
+}
 function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
 function loadLevel(id, logging) {
-	if (starCount() < getStarRequirement(id)) {
+	if (id >= LEVELS.length || starCount() < getStarRequirement(id)) {
 		enterMenu();
 		return;
 	}

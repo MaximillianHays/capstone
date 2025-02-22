@@ -73,9 +73,6 @@ function resetLevel() {
 	});
 	loadLevel(level);
 }
-function loadStars() {
-	if (localStorage.getItem("stars")) stars = JSON.parse(localStorage.getItem("stars"));
-}
 function log(event) {
 	logs.push({
 		...event,
@@ -88,13 +85,17 @@ function sendLogs() {
 	if (!logs.length) return;
 	if (userID == "test") return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-		body: JSON.stringify({logs, uid: userID, sid: sessionId}),
+		body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, area: innerHeight * innerWidth}),
 		method: "POST",
 		keepalive: true
 	});
 	logs = [];
 }
-function saveGame(quit) {
+function getSessionID() {
+	if (!sessionStorage.getItem("sid")) sessionStorage.setItem("sid", crypto.randomUUID());
+	return sessionStorage.getItem("sid");
+}
+function save(quit) {
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
 	if (quit) log({
@@ -104,6 +105,9 @@ function saveGame(quit) {
 		level
 	});
 	sendLogs();
+}
+function load() {
+	if (localStorage.getItem("stars")) stars = JSON.parse(localStorage.getItem("stars"));
 }
 const BUTTON_Y = EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
 canvas.addEventListener("pointermove", updateMouse);
@@ -124,7 +128,7 @@ canvas.addEventListener("pointerdown", e => {
 					moves: player.moves,
 					level
 				});
-			} else if (!next) {
+			} else if (menu) {
 				log({
 					action: "Exit Level",
 					moves: player.moves,
@@ -143,19 +147,20 @@ canvas.addEventListener("pointerdown", e => {
 });
 addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
-	if (e.altKey && e.key == "F4") saveGame(true);
+	if (e.altKey && e.key == "F4") save(true);
 });
 addEventListener("beforeunload", () => {
-	saveGame(true);
+	save(true);
 });
 document.addEventListener("mouseleave", () => {
-	saveGame();
+	save();
 });
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState == "hidden") {
-		saveGame();
+		sessionStorage.removeItem("sid");
+		save();
 	} else {
-		loadStars();
+		load();
 		if (inMenu) enterMenu();
 	}
 });
@@ -165,7 +170,7 @@ let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + E
 let logs = [];
 let logNumber = 0;
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
-let sessionId = crypto.randomUUID();
-loadStars();
+let sessionID;
+load();
 enterMenu();
 draw();
