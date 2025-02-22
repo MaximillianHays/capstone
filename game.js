@@ -1,7 +1,8 @@
 function draw() {
 	requestAnimationFrame(draw);
 	updateDelta();
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = "white";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	if (inMenu) {
 		menu.draw();
 	} else {
@@ -112,6 +113,7 @@ function load() {
 const BUTTON_Y = EDGE_RADIUS * Hex.HEIGHT_FACTOR * 18;
 canvas.addEventListener("pointermove", updateMouse);
 canvas.addEventListener("pointerdown", e => {
+	if (e.button) return;
 	updateMouse(e);
 	if (inMenu) {
 		let hovered = menu.hovered;
