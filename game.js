@@ -92,19 +92,19 @@ function sendLogs() {
 	});
 	logs = [];
 }
+function startSession() {
+	log({
+		action: "Start Session",
+		stars: starCount()
+	});
+}
 function getSessionID() {
 	if (!sessionStorage.getItem("sid")) sessionStorage.setItem("sid", crypto.randomUUID());
 	return sessionStorage.getItem("sid");
 }
-function save(quit) {
+function save() {
 	localStorage.setItem("id", userID);
 	localStorage.setItem("stars", JSON.stringify(stars));
-	if (quit) log({
-		action: "Leave Game",
-		stars: starCount(),
-		moves: player?.moves,
-		level
-	});
 	sendLogs();
 }
 function load() {
@@ -149,20 +149,23 @@ canvas.addEventListener("pointerdown", e => {
 });
 addEventListener("keydown", e => {
 	if (e.key == "r") resetLevel();
-	if (e.altKey && e.key == "F4") save(true);
+	if (e.altKey && e.key == "F4") save();
 });
-addEventListener("beforeunload", () => {
-	save(true);
-});
-document.addEventListener("mouseleave", () => {
-	save();
-});
+addEventListener("beforeunload", save);
+document.addEventListener("mouseleave", save);
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState == "hidden") {
+		log({
+			action: "End Session",
+			moves: player?.moves,
+			level
+		});
+		sendLogs();
 		sessionStorage.removeItem("sid");
 		save();
 	} else {
 		load();
+		startSession();
 		if (inMenu) enterMenu();
 	}
 });
@@ -172,7 +175,7 @@ let nextButton = new Button(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + E
 let logs = [];
 let logNumber = 0;
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
-let sessionID;
 load();
+startSession();
 enterMenu();
 draw();
