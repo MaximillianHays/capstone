@@ -31,7 +31,7 @@ function drawGame() {
 	let tutorial = "";
 	if (!level) {
 		tutorial = "The red circle is you\nThe black hex is a wall\nThe gold hex is the goal";
-	} else if (level == 7) {
+	} else if (level == 3) {
 		tutorial = "You don't slide through sand";
 	} else if (level == 14) {
 		tutorial = "You bounce off mirrors";
