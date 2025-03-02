@@ -152,6 +152,24 @@ class Button extends Tile {
 		this.hex.drawText(this.text, BUTTON_FONT, {colors: [this.color == "black" ? "white" : "black", "gold"], centerX: true, centerY: true});
 	}
 }
+
+class IconButton extends Tile {
+	constructor(grid, hex, loc, color, selectColor, outlineColor, text, onClick) {
+		super(grid, hex, loc);
+		this.color = color;
+		this.selectColor = selectColor;
+		this.outlineColor = outlineColor;
+		this.text = text;
+		this.onClick = onClick;
+	}
+	draw() {
+		ctx.fillStyle = this.hex.contains(mouse) ? this.selectColor : this.color;
+		this.hex.draw("fill");
+		this.outline(this.outlineColor);
+		this.hex.drawText(this.text, ICON_FONT, {colors: [this.color == "black" ? "white" : "black", "gold"], centerX: true, centerY: true});
+	}
+}
+
 class AngledTile extends Tile {
 	constructor(grid, hex, loc, angle) {
 		super(grid, hex, loc);
@@ -429,8 +447,34 @@ class Menu extends Grid {
 	}
 	draw() {
 		super.draw();
+		
 		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
-		drawText(starCount() + "★", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 10 + this.loc.y, UI_FONT, {centerX: true});
+		const starX = EDGE_RADIUS * 10.5 + this.loc.x;
+		const starY = EDGE_RADIUS * 10 + this.loc.y;
+		const padding = 5;
+		const rectWidth = EDGE_RADIUS * 2.4;
+		const rectHeight = EDGE_RADIUS * 1.7;
+		const rectX = starX - EDGE_RADIUS * 0.6 - padding;
+		const rectY = starY - padding;
+		const radius = 10; 
+
+		ctx.beginPath();
+		ctx.moveTo(rectX + radius, rectY);
+		ctx.arcTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + rectHeight, radius);
+		ctx.arcTo(rectX + rectWidth, rectY + rectHeight, rectX, rectY + rectHeight, radius);
+		ctx.arcTo(rectX, rectY + rectHeight, rectX, rectY, radius);
+		ctx.arcTo(rectX, rectY, rectX + rectWidth, rectY, radius);
+
+		ctx.fillStyle = "#FFFDDD";
+		ctx.fill();
+		ctx.closePath();
+
+		drawText("★", starX, starY, ICON_FONT, {color: 'gold', centerX: true});
+
+		// Draw the star count
+		const starCountX = EDGE_RADIUS * 11.4 + this.loc.x;
+		const starCountY = EDGE_RADIUS * 10.4 + this.loc.y;
+		drawText(""+starCount(), starCountX, starCountY, UI_FONT, {color: 'orange', centerX: true});
 	}
 }
 class Player {
@@ -580,6 +624,7 @@ function loadLevel(id, logging) {
 	}
 	target = +str.substring(ptr);
 	level = id;
+	numHint = 0;
 }
 function starCount() {
 	return stars.reduce((sum, a) => sum + a, 0);
@@ -653,6 +698,7 @@ function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
 	}
 	ctx.stroke();
 	ctx.fillStyle = ctx.strokeStyle;
+	
 	ctx.beginPath();
 	ctx.moveTo(b.x, b.y);
 	ctx.lineTo(left.x, left.y);
@@ -672,6 +718,9 @@ const EPSILON = 0.0000001;
 const EDGE_RADIUS = Math.min(innerWidth / 40, innerHeight / 20);
 const UI_FONT = EDGE_RADIUS * 0.8 + "px monospace";
 const BUTTON_FONT = EDGE_RADIUS * 0.6 + "px monospace";
+const ICON_FONT = EDGE_RADIUS * 1.5 + "px monospace";
+const STAR_FONT = EDGE_RADIUS * 2.8 + "px monospace";
+
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");
@@ -686,5 +735,6 @@ let inMenu;
 let menu;
 let stars = new Array(LEVELS.length).fill(0);
 let target = 1;
+let numHint;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);
