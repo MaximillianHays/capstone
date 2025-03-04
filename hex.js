@@ -447,16 +447,16 @@ class Menu extends Grid {
 	}
 	draw() {
 		super.draw();
-		
-		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
+
+		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", { centerX: true });
 		const starX = EDGE_RADIUS * 10.5 + this.loc.x;
 		const starY = EDGE_RADIUS * 10 + this.loc.y;
 		const padding = 5;
 		const rectWidth = EDGE_RADIUS * 2.4;
 		const rectHeight = EDGE_RADIUS * 1.7;
 		const rectX = starX - EDGE_RADIUS * 0.6 - padding;
-		const rectY = starY - padding;
-		const radius = 10; 
+		const rectY = starY - EDGE_RADIUS * 0.7 - padding;
+		const radius = 10;
 
 		ctx.beginPath();
 		ctx.moveTo(rectX + radius, rectY);
@@ -469,12 +469,12 @@ class Menu extends Grid {
 		ctx.fill();
 		ctx.closePath();
 
-		drawText("★", starX, starY, ICON_FONT, {color: 'gold', centerX: true});
+		drawText("★", starX, starY, ICON_FONT, {color: 'gold', centerX: true, centerY: true});
 
 		// Draw the star count
-		const starCountX = EDGE_RADIUS * 11.4 + this.loc.x;
-		const starCountY = EDGE_RADIUS * 10.4 + this.loc.y;
-		drawText(""+starCount(), starCountX, starCountY, UI_FONT, {color: 'orange', centerX: true});
+		const starCountX = rectX + rectWidth * 0.75;
+		const starCountY = rectY + rectHeight / 2;
+		drawText("" + starCount(), starCountX, starCountY, UI_FONT, {color: 'orange', centerX: true, centerY: true});
 	}
 }
 class Player {
@@ -564,6 +564,7 @@ class Player {
 		} else {
 			this.grids[0].draw();
 		}
+		if (numHint) showHint();
 		this.approach();
 		ctx.beginPath();
 		ctx.arc(this.drawLoc.x, this.drawLoc.y, this.radius, 0, Math.PI * 2);
@@ -600,10 +601,7 @@ function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
 function loadLevel(id, logging) {
-	if (id >= LEVELS.length || starCount() < getStarRequirement(id)) {
-		enterMenu();
-		return;
-	}
+	if (id >= LEVELS.length || starCount() < getStarRequirement(id)) return false;
 	if (logging) {
 		log({
 			action: "Start Level",
@@ -625,6 +623,7 @@ function loadLevel(id, logging) {
 	target = +str.substring(ptr);
 	level = id;
 	numHint = 0;
+	return true;
 }
 function starCount() {
 	return stars.reduce((sum, a) => sum + a, 0);
@@ -675,10 +674,6 @@ function drawText(str, x, y, font, {
 		ctx.fillText(lines[i], x, y + i * fontSize * spacing);
 	}
 }
-function enterMenu() {
-	inMenu = true;
-	menu = new Menu();
-}
 function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
 	let a = points.at(-2);
 	let b = points.at(-1);
@@ -698,7 +693,6 @@ function drawArrow(points, lineWidth, widthFactor, lengthFactor) {
 	}
 	ctx.stroke();
 	ctx.fillStyle = ctx.strokeStyle;
-	
 	ctx.beginPath();
 	ctx.moveTo(b.x, b.y);
 	ctx.lineTo(left.x, left.y);
@@ -720,7 +714,6 @@ const UI_FONT = EDGE_RADIUS * 0.8 + "px monospace";
 const BUTTON_FONT = EDGE_RADIUS * 0.6 + "px monospace";
 const ICON_FONT = EDGE_RADIUS * 1.5 + "px monospace";
 const STAR_FONT = EDGE_RADIUS * 2.8 + "px monospace";
-
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");
 let ctx = canvas.getContext("2d");

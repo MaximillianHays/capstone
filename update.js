@@ -12,8 +12,10 @@ switch (version) {
 	case 1:
 		swapStars(4, 8);
 		swapStars(5, 9);
-		swapStars(6, 10);
+		stars[9] = stars[5];
+		stars[5] = 0;
 }
 version = 2;
 localStorage.setItem("version", version);
 if (localStorage.getItem("initialVersion") == null) localStorage.setItem("initialVersion", version);
+if (!localStorage.getItem("hints")) localStorage.setItem("hints", Math.random() < 0.5);
