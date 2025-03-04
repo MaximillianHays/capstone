@@ -448,33 +448,21 @@ class Menu extends Grid {
 	draw() {
 		super.draw();
 
-		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", { centerX: true });
+		drawText("Level Select", EDGE_RADIUS * 11 + this.loc.x, EDGE_RADIUS * 1.5 + this.loc.y, EDGE_RADIUS * 1.5 + "px monospace", {centerX: true});
 		const starX = EDGE_RADIUS * 10.5 + this.loc.x;
-		const starY = EDGE_RADIUS * 10 + this.loc.y;
+		const starY = EDGE_RADIUS * 10.25 + this.loc.y;
 		const padding = 5;
 		const rectWidth = EDGE_RADIUS * 2.4;
 		const rectHeight = EDGE_RADIUS * 1.7;
 		const rectX = starX - EDGE_RADIUS * 0.6 - padding;
 		const rectY = starY - EDGE_RADIUS * 0.7 - padding;
-		const radius = 10;
-
-		ctx.beginPath();
-		ctx.moveTo(rectX + radius, rectY);
-		ctx.arcTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + rectHeight, radius);
-		ctx.arcTo(rectX + rectWidth, rectY + rectHeight, rectX, rectY + rectHeight, radius);
-		ctx.arcTo(rectX, rectY + rectHeight, rectX, rectY, radius);
-		ctx.arcTo(rectX, rectY, rectX + rectWidth, rectY, radius);
-
-		ctx.fillStyle = "#FFFDDD";
-		ctx.fill();
-		ctx.closePath();
 
 		drawText("★", starX, starY, ICON_FONT, {color: 'gold', centerX: true, centerY: true});
 
 		// Draw the star count
 		const starCountX = rectX + rectWidth * 0.75;
 		const starCountY = rectY + rectHeight / 2;
-		drawText("" + starCount(), starCountX, starCountY, UI_FONT, {color: 'orange', centerX: true, centerY: true});
+		drawText("" + starCount(), starCountX, starCountY, UI_FONT, {color: 'black', centerX: true, centerY: true});
 	}
 }
 class Player {
@@ -623,6 +611,7 @@ function loadLevel(id, logging) {
 	target = +str.substring(ptr);
 	level = id;
 	numHint = 0;
+	resetMoves = 0;
 	return true;
 }
 function starCount() {
@@ -729,5 +718,6 @@ let menu;
 let stars = new Array(LEVELS.length).fill(0);
 let target = 1;
 let numHint;
+let resetMoves = 0;
 scaleCanvas();
 addEventListener("resize", scaleCanvas);

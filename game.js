@@ -60,7 +60,7 @@ Target: ${target}
 		stars[level] = Math.max(stars[level], calcStars());
 		drawWinBox();
 	}
-	if (player.moves >= target * 1.5 && level < paths.length) {
+	if ((player.moves + resetMoves) >= target * 1.5 && level < paths.length) {
 		let availableHints = getAvailableHints();
 		if (numHint < availableHints) {
 			hintButton.draw();
@@ -68,7 +68,7 @@ Target: ${target}
 			ctx.arc(EDGE_RADIUS * 28.6, BUTTON_Y - EDGE_RADIUS * 0.8, 0.3 * EDGE_RADIUS, 0, Math.PI * 2);
 			ctx.fillStyle = "red";
 			ctx.fill();
-			drawText(`${availableHints - numHint}`, EDGE_RADIUS * 28.45, BUTTON_Y - EDGE_RADIUS, EDGE_RADIUS * 0.5 + "px monospace", {color: "white"});
+			drawText(`${availableHints - numHint}`, EDGE_RADIUS * 28.6, BUTTON_Y - EDGE_RADIUS * 0.84, EDGE_RADIUS * 0.5 + "px monospace", {color: "white", centerX: true, centerY: true});
 		}
 	}
 }
@@ -166,16 +166,18 @@ function calcStars() {
 	return 1;
 }
 function getAvailableHints() {
-	if (level >= paths.length || !localStorage.getItem("hints")) return 0;
-	return Math.min(Math.floor(player.moves / (target * 1.5)), paths[level].length - 1);
+	if (level >= paths.length || !+localStorage.getItem("hints")) return 0;
+	return Math.min(Math.floor((resetMoves + player.moves) / (target * 1.5)), paths[level].length - 1);
 }
 function resetLevel() {
+	let moves = resetMoves + player.moves;
 	log({
 		action: "Reset Level",
 		moves: player.moves,
 		level
 	});
 	loadLevel(level);
+	resetMoves = moves;
 }
 function enterMenu() {
 	inMenu = true;
@@ -288,7 +290,7 @@ document.addEventListener("visibilitychange", () => {
 let resetButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↻");
 let menuButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
 let hintButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 28, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "💡");
-let nextButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X + EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "➞");
+let nextButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X + EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "➜");
 let retryButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↻");
 let menuBoxButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X - EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
 let logs = [];
