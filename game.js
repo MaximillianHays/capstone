@@ -190,14 +190,14 @@ function log(event) {
 	if (logs.length == 25) sendLogs();
 }
 function sendLogs() {
-	// if (!logs.length) return;
-	// if (userID == "test") return;
-	// fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-	// body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), hints: localStorage.getItem("hints")}),
-	// 	method: "POST",
-	// 	keepalive: true
-	// });
-	// logs = [];
+	if (!logs.length) return;
+	if (userID == "test") return;
+	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
+	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), hints: localStorage.getItem("hints")}),
+		method: "POST",
+		keepalive: true
+	});
+	logs = [];
 }
 function startSession() {
 	log({
