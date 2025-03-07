@@ -51,8 +51,8 @@ function drawGame() {
 	drawSchema();
 	drawText(
 		`${levelStr}
-Moves: ${player.moves}
 Target: ${target}
+Moves: ${player.moves}
 	`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
@@ -298,5 +298,6 @@ let logNumber = 0;
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
 load();
 startSession();
-enterMenu();
+if (stars[0]) enterMenu();
+else loadLevel(0);
 draw();
