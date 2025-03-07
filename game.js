@@ -166,7 +166,7 @@ function calcStars() {
 	return 1;
 }
 function getAvailableHints() {
-	if (level >= paths.length || !+localStorage.getItem("hints")) return 0;
+	if (level >= paths.length) return 0;
 	return Math.min(Math.floor((resetMoves + player.moves) / (target * 1.5)), paths[level].length - 1);
 }
 function resetLevel() {
@@ -195,7 +195,7 @@ function sendLogs() {
 	if (!logs.length) return;
 	if (userID == "test") return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), hints: localStorage.getItem("hints")}),
+	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), area: innerHeight * innerWidth}),
 		method: "POST",
 		keepalive: true
 	});

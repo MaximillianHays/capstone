@@ -18,4 +18,3 @@ switch (version) {
 version = 2;
 localStorage.setItem("version", version);
 if (localStorage.getItem("initialVersion") == null) localStorage.setItem("initialVersion", version);
-if (!localStorage.getItem("hints")) localStorage.setItem("hints", +(Math.random() < 0.5));
