@@ -461,7 +461,7 @@ class Menu extends Grid {
 
 		// Draw the star count
 		const starCountX = rectX + rectWidth * 0.75;
-		const starCountY = rectY + rectHeight / 2;
+		const starCountY = rectY + rectHeight * 0.6;
 		drawText("" + starCount(), starCountX, starCountY, UI_FONT, {color: 'black', centerX: true, centerY: true});
 	}
 }
@@ -589,6 +589,7 @@ function directionIndex(dir) {
 	return DIRECTIONS.findIndex(x => x.equals(dir));
 }
 function loadLevel(id, logging) {
+	hasPlayedAudio = false;
 	if (id >= LEVELS.length || starCount() < getStarRequirement(id)) return false;
 	if (logging) {
 		log({
@@ -701,7 +702,7 @@ const EPSILON = 0.0000001;
 const EDGE_RADIUS = Math.min(innerWidth / 40, innerHeight / 20);
 const UI_FONT = EDGE_RADIUS * 0.8 + "px monospace";
 const BUTTON_FONT = EDGE_RADIUS * 0.6 + "px monospace";
-const ICON_FONT = EDGE_RADIUS * 1.5 + "px monospace";
+const ICON_FONT = EDGE_RADIUS * 2 + "px monospace";
 const STAR_FONT = EDGE_RADIUS * 2.8 + "px monospace";
 let mouse = new Vec(0, 0);
 let canvas = document.querySelector("canvas");

@@ -31,7 +31,14 @@ const BOX_X = EDGE_RADIUS * 10 - EDGE_RADIUS * 1.5;
 const BOX_Y = EDGE_RADIUS * 7;
 const BOX_CENTER_X = BOX_X + BOX_WIDTH / 2;
 const BOX_CENTER_Y = BOX_Y + BOX_HEIGHT / 2;
+
 function drawWinBox() {
+	if (!hasPlayedAudio) {
+		const audio = new Audio('mixkit-achievement-bell-600.wav');
+		audio.loop = false;
+		audio.play(); 
+		hasPlayedAudio = true; // Set the flag to true once the audio has played
+}
 	ctx.fillStyle = "white";
 	ctx.fillRect(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
 	ctx.strokeStyle = "silver";
@@ -47,16 +54,20 @@ function drawGame() {
 	player.draw();
 	let levelStr = "Level " + (level + 1) + " ";
 	ctx.font = UI_FONT;
-	drawText(starStr(stars[level]), EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, EDGE_RADIUS, UI_FONT, {color: "gold"});
+	drawText(starStr(calcStars()), EDGE_RADIUS * 22.8, EDGE_RADIUS * 3, ICON_FONT, {color: "gold"});
 	drawSchema();
 	drawText(
 		`${levelStr}
 Target: ${target}
-Moves: ${player.moves}
 	`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
+	drawText(
+		`Moves: ${player.moves}
+	`, EDGE_RADIUS * 23, EDGE_RADIUS * 5, UI_FONT, {spacing: 1.25});
 	resetButton.draw();
 	menuButton.draw();
 	if (player.winning) {
+		const pyroElement = document.querySelector('.pyro');
+		pyroElement.style.display = 'block';
 		stars[level] = Math.max(stars[level], calcStars());
 		drawWinBox();
 	}
@@ -111,7 +122,7 @@ function drawSchema() {
 			ctx.stroke();
 			ctx.fill();
 		} else if (level == 21) {
-			drawRec(x, EDGE_RADIUS * 10, EDGE_RADIUS * 4, EDGE_RADIUS * 9 - 5);
+			drawRec(x, EDGE_RADIUS * 11, EDGE_RADIUS * 4, EDGE_RADIUS * 9 - 5);
 			drawText(`Change direction with`, x - EDGE_RADIUS, EDGE_RADIUS * 9.5, UI_FONT);
 			drawText("REDIRECTORS", EDGE_RADIUS * 26, EDGE_RADIUS * 11.4 - 0.3 * EDGE_RADIUS, UI_FONT);
 			ctx.fillStyle = "red";
@@ -233,6 +244,7 @@ canvas.addEventListener("pointerdown", e => {
 		let next = nextButton.hex.contains(mouse);
 		let retry = retryButton.hex.contains(mouse);
 		let hint = hintButton.hex.contains(mouse);
+		let menuBox = menuBoxButton.hex.contains(mouse);
 		if (reset || menu || next) {
 			if (player.winning) {
 				log({
@@ -253,6 +265,10 @@ canvas.addEventListener("pointerdown", e => {
 		if (menu) enterMenu();
 		if (hint && getAvailableHints() - numHint) numHint++;
 		if (player.winning) {
+			if (next || menuBox || retry ) {
+				const pyroElement = document.querySelector('.pyro');
+				pyroElement.style.display = 'none';
+			}
 			if (next) {
 				if (!loadLevel(level + 1, true)) {
 					if (!loadLevel(level + 2, true)) enterMenu();
@@ -296,6 +312,7 @@ let menuBoxButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X - EDGE_RAD
 let logs = [];
 let logNumber = 0;
 let userID = localStorage.getItem("id") ?? crypto.randomUUID();
+let hasPlayedAudio = false;
 load();
 startSession();
 if (stars[0]) enterMenu();
