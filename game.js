@@ -54,12 +54,12 @@ function drawGame() {
 	player.draw();
 	let levelStr = "Level " + (level + 1) + " ";
 	ctx.font = UI_FONT;
-	drawText(starStr(calcStars()), EDGE_RADIUS * 22.8, EDGE_RADIUS * 3, ICON_FONT, {color: "gold"});
+	drawText(starStr(stars[level]), EDGE_RADIUS * 23 + ctx.measureText(levelStr).width, EDGE_RADIUS, UI_FONT, {color: "gold"});
 	drawSchema();
 	drawText(
 		`${levelStr}
 Target: ${target}
-	`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
+Moves: ${player.moves}`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
 	undoButton.draw();
 	resetButton.draw();
 	menuButton.draw();
@@ -240,6 +240,10 @@ canvas.addEventListener("pointerdown", e => {
 		let hint = player.tile.hex.contains(mouse);
 		if (reset || menu || next) {
 			if (player.winning) {
+				if (next || menu || reset) {
+					const pyroElement = document.querySelector('.pyro');
+					pyroElement.style.display = 'none';
+				}
 				log({
 					action: "Finish Level",
 					stars: calcStars(),
@@ -259,10 +263,6 @@ canvas.addEventListener("pointerdown", e => {
 		if (reset) resetLevel();
 		if (menu) enterMenu();
 		if (player.winning) {
-			if (next || menuBox || retry ) {
-				const pyroElement = document.querySelector('.pyro');
-				pyroElement.style.display = 'none';
-			}
 			if (next) {
 				if (!loadLevel(level + 1, true)) {
 					if (!loadLevel(level + 2, true)) enterMenu();
