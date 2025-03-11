@@ -60,7 +60,7 @@ function drawGame() {
 		`${levelStr}
 Target: ${target}
 Moves: ${player.moves}`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
-	undoButton.draw();
+	if (+localStorage.getItem("undo")) undoButton.draw();
 	resetButton.draw();
 	menuButton.draw();
 	if (player.winning) {
@@ -200,7 +200,7 @@ function sendLogs() {
 	if (!logs.length) return;
 	if (userID == "test") return;
 	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), area: innerHeight * innerWidth}),
+	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), area: innerHeight * innerWidth, undo: localStorage.getItem("undo")}),
 		method: "POST",
 		keepalive: true
 	});
@@ -276,7 +276,7 @@ canvas.addEventListener("pointerdown", e => {
 				level
 			});
 			numHint++;
-		} else if (undo && player.history.length) {
+		} else if (undo && player.history.length && +localStorage.getItem("undo")) {
 			let temp = player.history.at(-1);
 			temp.moveLog = [...player.moveLog, player.moveLog.at(-2)];
 			player = temp;

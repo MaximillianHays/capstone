@@ -18,3 +18,4 @@ switch (version) {
 version = 3;
 localStorage.setItem("version", version);
 if (localStorage.getItem("initialVersion") == null) localStorage.setItem("initialVersion", version);
+if (!localStorage.getItem("undo")) localStorage.setItem("undo", +(Math.random() < 0.5));
