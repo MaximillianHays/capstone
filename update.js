@@ -15,6 +15,6 @@ switch (version) {
 		stars[9] = stars[5];
 		stars[5] = 0;
 }
-version = 2;
+version = 3;
 localStorage.setItem("version", version);
 if (localStorage.getItem("initialVersion") == null) localStorage.setItem("initialVersion", version);

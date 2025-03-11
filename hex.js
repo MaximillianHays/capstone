@@ -469,6 +469,8 @@ class Player {
 	constructor(grid, loc) {
 		this.grid = grid;
 		this.loc = loc;
+		this.moveLog = [[this.loc.x, this.loc.y]];
+		this.history = [];
 		this.stops = [];
 		this.grids = [grid];
 		this.drawLoc = this.tile.hex.center;
@@ -496,9 +498,11 @@ class Player {
 	}
 	move(dir) {
 		this.moves++;
+		this.history.push(this.copy());
 		this.grids = [this.grid.copy()];
 		this.keepMoving(dir);
 		this.adjust();
+		this.moveLog.push([this.loc.x, this.loc.y]);
 	}
 	keepMoving(dir) {
 		if (dir.equals(new Vec(0, 0))) return;
@@ -577,7 +581,9 @@ class Player {
 		}
 	}
 	copy() {
-		return new Player(grid.copy(), this.loc);
+		let result = new Player(grid.copy(), this.loc);
+		result.history = [...this.history];
+		return result;
 	}
 }
 function swap(arr, a, b) {

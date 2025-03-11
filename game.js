@@ -54,6 +54,7 @@ function drawGame() {
 Target: ${target}
 Moves: ${player.moves}
 	`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
+	undoButton.draw();
 	resetButton.draw();
 	menuButton.draw();
 	if (player.winning) {
@@ -63,12 +64,7 @@ Moves: ${player.moves}
 	if ((player.moves + resetMoves) >= target * 1.5 && level < paths.length) {
 		let availableHints = getAvailableHints();
 		if (numHint < availableHints) {
-			hintButton.draw();
-			ctx.beginPath();
-			ctx.arc(EDGE_RADIUS * 28.6, BUTTON_Y - EDGE_RADIUS * 0.8, 0.3 * EDGE_RADIUS, 0, Math.PI * 2);
-			ctx.fillStyle = "red";
-			ctx.fill();
-			drawText(`${availableHints - numHint}`, EDGE_RADIUS * 28.6, BUTTON_Y - EDGE_RADIUS * 0.84, EDGE_RADIUS * 0.5 + "px monospace", {color: "white", centerX: true, centerY: true});
+			drawText("💡", player.drawLoc.x + EDGE_RADIUS * 0.1, player.drawLoc.y - EDGE_RADIUS * 0.5, BUTTON_FONT);
 		}
 	}
 }
@@ -174,6 +170,7 @@ function resetLevel() {
 	log({
 		action: "Reset Level",
 		moves: player.moves,
+		moveLog: JSON.stringify(player.moveLog),
 		level
 	});
 	loadLevel(level);
@@ -228,38 +225,49 @@ canvas.addEventListener("pointerdown", e => {
 		let hovered = menu.hovered;
 		if (hovered) menu.getTile(hovered).onClick?.();
 	} else {
-		let reset = resetButton.hex.contains(mouse);
-		let menu = menuButton.hex.contains(mouse);
+		let reset = resetButton.hex.contains(mouse) || (player.winning && retryButton.hex.contains(mouse));
+		let menu = menuButton.hex.contains(mouse) || (player.winning && menuBoxButton.hex.contains(mouse));
 		let next = nextButton.hex.contains(mouse);
-		let retry = retryButton.hex.contains(mouse);
-		let hint = hintButton.hex.contains(mouse);
+		let undo = undoButton.hex.contains(mouse);
+		let hint = player.tile.hex.contains(mouse);
 		if (reset || menu || next) {
 			if (player.winning) {
 				log({
 					action: "Finish Level",
 					stars: calcStars(),
 					moves: player.moves,
+					moveLog: JSON.stringify(player.moveLog),
 					level
 				});
 			} else if (menu) {
 				log({
 					action: "Exit Level",
 					moves: player.moves,
+					moveLog: JSON.stringify(player.moveLog),
 					level
 				});
 			}
 		}
 		if (reset) resetLevel();
 		if (menu) enterMenu();
-		if (hint && getAvailableHints() - numHint) numHint++;
 		if (player.winning) {
 			if (next) {
 				if (!loadLevel(level + 1, true)) {
 					if (!loadLevel(level + 2, true)) enterMenu();
 				}
 			}
-			if (retry) resetLevel();
-			if (menuBoxButton.hex.contains(mouse)) enterMenu();
+		} else if (hint && getAvailableHints() - numHint) {
+			log({
+				action: "Get Hint",
+				moves: player.moves,
+				moveLog: JSON.stringify(player.moveLog),
+				level
+			});
+			numHint++;
+		} else if (undo && player.history.length) {
+			let temp = player.history.at(-1);
+			temp.moveLog = [...player.moveLog, player.moveLog.at(-2)];
+			player = temp;
 		} else {
 			player.onClick();
 		}
@@ -276,6 +284,7 @@ document.addEventListener("visibilitychange", () => {
 		log({
 			action: "End Session",
 			moves: player?.moves,
+			moveLog: JSON.stringify(player?.moveLog),
 			level
 		});
 		sendLogs();
@@ -287,9 +296,9 @@ document.addEventListener("visibilitychange", () => {
 		if (inMenu) enterMenu();
 	}
 });
-let resetButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↻");
-let menuButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
-let hintButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 28, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "💡");
+let undoButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "⤺");
+let resetButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↺");
+let menuButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 28, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
 let nextButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X + EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "➜");
 let retryButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↻");
 let menuBoxButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X - EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
