@@ -126,7 +126,7 @@ class Tile {
 		return this.newDirection(dir) == null;
 	}
 	outline(color = "white") {
-		ctx.lineWidth = 1;
+		ctx.lineWidth = EDGE_RADIUS / 48;
 		ctx.strokeStyle = color;
 		this.hex.draw("stroke");
 	}

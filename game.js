@@ -18,7 +18,7 @@ function draw() {
 	}
 }
 function showHint() {
-	ctx.strokeStyle = "grey";
+	ctx.strokeStyle = "white";
 	let tiles = [];
 	for (const i of paths[level].slice(Math.max(-numHint - 1, -paths[level].length))) {
 		tiles.push(grid.getTile(i).hex.center);
