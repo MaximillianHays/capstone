@@ -497,9 +497,9 @@ class Player {
 		this.grids.push(this.grid.copy());
 	}
 	move(dir) {
-		this.moves++;
 		this.history.push(this.copy());
 		this.grids = [this.grid.copy()];
+		this.moves++;
 		this.keepMoving(dir);
 		this.adjust();
 		this.moveLog.push([this.loc.x, this.loc.y]);
@@ -582,6 +582,7 @@ class Player {
 	}
 	copy() {
 		let result = new Player(grid.copy(), this.loc);
+		result.moves = this.moves;
 		result.history = [...this.history];
 		return result;
 	}
