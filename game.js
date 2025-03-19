@@ -2,7 +2,7 @@ const paths = [
 	[new Vec(0, 9), new Vec(2, 5), new Vec(4, 9)],
 	[new Vec(0, 9), new Vec(2, 5), new Vec(4, 9), new Vec(6, 5)],
 	[new Vec(0, 9), new Vec(5, 0), new Vec(0, 0), new Vec(4, 9), new Vec(6, 5)],
-	[new Vec(0, 9), new Vec(0, 8), new Vec(9, 8), new Vec(9, 7), new Vec(4, 7), new Vec(6, 4)],
+	[new Vec(0, 9), new Vec(0, 8), new Vec(5, 8), new Vec(6, 5)],
 	[new Vec(0, 9), new Vec(3, 3), new Vec(5, 6), new Vec(3, 6), new Vec(5, 2), new Vec(8, 2)],
 	[new Vec(0, 9), new Vec(1, 7), new Vec(0, 7), new Vec(3, 2), new Vec(4, 2), new Vec(7, 8), new Vec(9, 3)],
 ];
@@ -31,7 +31,6 @@ const BOX_X = EDGE_RADIUS * 10 - EDGE_RADIUS * 1.5;
 const BOX_Y = EDGE_RADIUS * 7;
 const BOX_CENTER_X = BOX_X + BOX_WIDTH / 2;
 const BOX_CENTER_Y = BOX_Y + BOX_HEIGHT / 2;
-
 function drawWinBox() {
 	if (!hasPlayedAudio) {
 		const audio = new Audio('mixkit-achievement-bell-600.wav');
@@ -60,7 +59,7 @@ function drawGame() {
 		`${levelStr}
 Target: ${target}
 Moves: ${player.moves}`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25});
-	if (+localStorage.getItem("undo")) undoButton.draw();
+	undoButton.draw();
 	resetButton.draw();
 	menuButton.draw();
 	if (player.winning) {
@@ -72,7 +71,12 @@ Moves: ${player.moves}`, EDGE_RADIUS * 23, EDGE_RADIUS, UI_FONT, {spacing: 1.25}
 	if ((player.moves + resetMoves) >= target * 1.5 && level < paths.length) {
 		let availableHints = getAvailableHints();
 		if (numHint < availableHints) {
-			drawText("💡", player.drawLoc.x + EDGE_RADIUS * 0.1, player.drawLoc.y - EDGE_RADIUS * 0.5, BUTTON_FONT);
+			hintButton.draw();
+ 			ctx.beginPath();
+ 			ctx.arc(EDGE_RADIUS * 30.6, BUTTON_Y - EDGE_RADIUS * 0.8, 0.3 * EDGE_RADIUS, 0, Math.PI * 2);
+ 			ctx.fillStyle = "red";
+ 			ctx.fill();
+ 			drawText(`${availableHints - numHint}`, EDGE_RADIUS * 30.6, BUTTON_Y - EDGE_RADIUS * 0.84, EDGE_RADIUS * 0.5 + "px monospace", {color: "white", centerX: true, centerY: true});
 		}
 	}
 }
@@ -189,22 +193,22 @@ function enterMenu() {
 	menu = new Menu();
 }
 function log(event) {
-	logs.push({
-		...event,
-		date: new Date().toISOString(),
-		timeStamp: Math.floor((new Date() - new Date("2/17/2025"))) + logNumber++
-	});
-	if (logs.length == 25) sendLogs();
+	// logs.push({
+	// 	...event,
+	// 	date: new Date().toISOString(),
+	// 	timeStamp: Math.floor(new Date()) + logNumber++
+	// });
+	// if (logs.length == 25) sendLogs();
 }
 function sendLogs() {
-	if (!logs.length) return;
-	if (userID == "test") return;
-	fetch("https://t7vszikxbycghcwfasvys46jhm0zpchl.lambda-url.us-west-2.on.aws/", {
-	body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), area: innerHeight * innerWidth, undo: localStorage.getItem("undo")}),
-		method: "POST",
-		keepalive: true
-	});
-	logs = [];
+	// if (!logs.length) return;
+	// if (userID == "test") return;
+	// {
+	// body: JSON.stringify({logs, uid: userID, sid: getSessionID(), version, iVersion: +localStorage.getItem("initialVersion"), area: innerHeight * innerWidth, undo: localStorage.getItem("undo")}),
+	// 	method: "POST",
+	// 	keepalive: true
+	// }
+	// logs = [];
 }
 function startSession() {
 	log({
@@ -237,7 +241,7 @@ canvas.addEventListener("pointerdown", e => {
 		let menu = menuButton.hex.contains(mouse) || (player.winning && menuBoxButton.hex.contains(mouse));
 		let next = nextButton.hex.contains(mouse);
 		let undo = undoButton.hex.contains(mouse);
-		let hint = player.tile.hex.contains(mouse);
+		let hint = hintButton.hex.contains(mouse);
 		if (reset || menu || next) {
 			if (player.winning) {
 				if (next || menu || reset) {
@@ -276,7 +280,7 @@ canvas.addEventListener("pointerdown", e => {
 				level
 			});
 			numHint++;
-		} else if (undo && player.history.length && +localStorage.getItem("undo")) {
+		} else if (undo && player.history.length) {
 			let temp = player.history.at(-1);
 			temp.moveLog = [...player.moveLog, player.moveLog.at(-2)];
 			player = temp;
@@ -311,6 +315,7 @@ document.addEventListener("visibilitychange", () => {
 let undoButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 24, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "⤺");
 let resetButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 26, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↺");
 let menuButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 28, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
+let hintButton = new IconButton(null, new Hex(new Vec(EDGE_RADIUS * 30, BUTTON_Y), EDGE_RADIUS), null, "lightgrey", "gold", "white", "💡");
 let nextButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X + EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "➜");
 let retryButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "↻");
 let menuBoxButton = new IconButton(null, new Hex(new Vec(BOX_CENTER_X - EDGE_RADIUS * 2, BOX_CENTER_Y + EDGE_RADIUS * 2), EDGE_RADIUS), null, "lightgrey", "gold", "white", "≡");
